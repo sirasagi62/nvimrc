@@ -1,3 +1,8 @@
+-- Environment
+-- Ubuntu 20.04 on WSL2 with Windows Terminal 
+-- TerminalTheme: tokyonight
+-- Font: Caskaydia Cove Nerd Font 10pt
+
 -- config for Japanese encodings
 vim.opt.encoding = "utf-8"
 vim.opt.fileencoding = "utf-8"
@@ -83,7 +88,8 @@ require('jetpack.packer').add {
   {'hrsh7th/vim-vsnip'},
 
   -- plugins for diagnostics, fomatting, etc...
-  {"jose-elias-alvarez/null-ls.nvim"},
+  {'mhartington/formatter.nvim'},
+  {'mfussenegger/nvim-lint'},
 
   -- fuzzy finder
   {
@@ -115,6 +121,12 @@ vim.o.timeoutlen = 300
 require 'key-menu'.set('n', '<Leader>')
 require 'key-menu'.set('n', '<Leader>t', {desc='Go to ...'})
 
+-- settings for vim-expand-region
+vim.keymap.set('v','v','<Plug>(expand_region_expand)')
+vim.keymap.set('v','V','<Plug>(expand_region_shrink)')
+
+-- settings for nvim-surround
+require("nvim-surround").setup()
 
 -- setting for lsp server
 -- init mason
