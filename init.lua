@@ -12,7 +12,7 @@ vim.opt.backspace = {"eol","indent","start"}
 -- scrolling config better
 vim.opt.scrolloff = 5
 
--- default configulation of tab and newline
+-- default configulation for tab and newline
 vim.opt.expandtab = true
 vim.opt.tabstop = 2
 vim.opt.shiftwidth = 2
@@ -80,7 +80,7 @@ require('jetpack.packer').add {
   {'hrsh7th/cmp-vsnip'},
   {'hrsh7th/vim-vsnip'},
 
-  -- plugins for diagnostics,fomatting, etc...
+  -- plugins for diagnostics, fomatting, etc...
   {"jose-elias-alvarez/null-ls.nvim"},
 
   -- fuzzy finder
