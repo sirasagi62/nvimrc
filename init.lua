@@ -51,6 +51,9 @@ require('jetpack.packer').add {
   {'nvim-lualine/lualine.nvim'},
   {'nvim-tree/nvim-web-devicons'},
 
+  -- make gutter fancy
+  {'folke/trouble.nvim'},
+
   -- plugins for text editing
   {'terryma/vim-expand-region'},
   {'kylechui/nvim-surround'}, -- re-implamantation of vim-surround by tpope in neovim with lua
@@ -100,8 +103,9 @@ require('jetpack.packer').add {
   -- other plugins to help my neovim life!
   -- show floating window which gives key mapping hint
   {'linty-org/key-menu.nvim'},
-  -- add submode in neovim (inspired by kana/vim-submode)
-  {'Dkendal/nvim-minor-mode'},
+
+  -- add submode in neovim
+  {'anuvyklack/hydra.nvim'},
 
   -- for development
   {'~/project/nvim-submode'},
@@ -180,6 +184,13 @@ augroup lsp_document_highlight
 augroup END
 ]]
 
+-- make sign fancy
+vim.cmd [[
+  sign define DiagnosticSignError text= texthl=DiagnosticSignError linehl= numhl=
+  sign define DiagnosticSignWarn text= texthl=DiagnosticSignWarn linehl= numhl=
+  sign define DiagnosticSignInfo text= texthl=DiagnosticSignInfo linehl= numhl=
+  sign define DiagnosticSignHint text= texthl=DiagnosticSignHint linehl= numhl=
+]]
 -- 3. completion (hrsh7th/nvim-cmp)
 local cmp = require("cmp")
 cmp.setup({
