@@ -102,6 +102,9 @@ require('jetpack.packer').add {
   {'linty-org/key-menu.nvim'},
   -- add submode in neovim (inspired by kana/vim-submode)
   {'Dkendal/nvim-minor-mode'},
+
+  -- for development
+  {'~/project/nvim-submode'},
 }
 
 -- setting for colorscheme
@@ -191,14 +194,13 @@ cmp.setup({
     { name = "path" },
   },
   mapping = cmp.mapping.preset.insert({
-    ["<C-k>"] = cmp.mapping.select_prev_item(),
-    ["<C-j>"] = cmp.mapping.select_next_item(),
+    ["<S-Tab>"] = cmp.mapping.select_prev_item(),
+    ["<Tab>"] = cmp.mapping.select_next_item(),
     ['<C-o>'] = cmp.mapping.complete(),
     ['<C-q>'] = cmp.mapping.abort(),
     ["<CR>"] = cmp.mapping.confirm { select = true },
   }),
-  experimental = {
-    ghost_text = true,
+  experimental = { ghost_text = true,
   },
 })
 cmp.setup.cmdline('/', {
@@ -218,9 +220,123 @@ cmp.setup.cmdline(":", {
 -- setting for showing indent
 require("indent_blankline").setup()
 
+-- Fist, load your favorite colorshceme
+local colors = require("tokyonight.colors").setup()
+
+local get_mode = require('lualine.utils.mode').get_mode
+
+
+package.loaded['nvim-submode'] = nil
+local sm = require('nvim-submode')
+local function submodeNameLualine()
+  return sm.getState().submode_display_name or ' '
+end
+
+local function modeNameLualine()
+  return sm.getState().submode_display_name or get_mode()
+end
+
+local function submodeNameLualineWithBaseMode()
+  local submode = sm.getState().submode_display_name
+  if submode then
+    return submode.."("..get_mode()..")"
+  else
+    return get_mode()
+  end
+end
+
+local function submodeLualineColor()
+  -- return nil
+  return sm.getState().submode_color and {bg=sm.getState().submode_color} or nil
+end
+
+
+local cascade_component = {
+  'mode',
+  {
+    submodeNameLualine,
+    cond = function ()
+      return submodeNameLualine()~=' '
+    end
+  },
+}
+
+local colored_component = {
+  {
+    -- modeNameLualine,
+    submodeNameLualineWithBaseMode,
+    color=submodeLualineColor,
+    separator = {left='',right=''},
+  }
+}
+
 -- config for lualine
 require('lualine').setup {
   options = {
-    theme = 'tokyonight'
+    globalstatus = true,
+    theme = 'tokyonight',
+    section_separators = { left = '', right = ''},
+  },
+  sections = {
+    lualine_a = colored_component,
   }
 }
+
+local testmode = {
+  -- enable to print debug information
+  debug = true,
+  -- set duration to wait key input
+  --timeoutlen = 1000,
+  
+  -- set minimum duration between each loop
+  -- in order to execute vim functions by proper order.
+  min_cycle_duration = 20,
+
+  lualine = true,
+  -- you can set any key except <Esc> as interrupt_key to interrupt waiting key input
+  interrupt_key = "<CR>",
+  -- mode name that set inner
+  mode_name="test",
+  mode_color = colors.orange,
+  -- if true, submode collect input numbers to number_list
+  number_input = true,
+  -- if true, submode automatically repeat keymap action number_list[1] times
+  number_modify = true,
+  mode_display_name=" TEST ",
+  keymaps = {
+    {
+      map="<C-H><C-W>",
+      action=function ()
+        print("Ctrl-H,Ctrl-W")
+      end
+    },
+    {
+      map="<C-H><C-W>i",
+      action=function ()
+        print("Ctrl-H,Ctrl-W,i")
+      end
+    },
+  },
+  default = function (prefix,c,number_list)
+    print("default:"..prefix..c)
+    --vim.fn.execute("normal a"..prefix..c)
+    vim.fn.execute("normal "..c)
+    --vim.api.nvim_input(prefix..c)
+    --[[vim.schedule(function ()
+      vim.fn.execute("normal j")
+    end)]]
+  end,
+  afterEnter = function ()
+    print("Enter test submode.")
+  end,
+  beforeLeave = function ()
+    print("Will Leave Submode!")
+  end,
+}
+
+
+
+local submode = require('nvim-submode')
+vim.keymap.set('i','<C-H>',function ()
+  submode.enterSubmode(testmode)
+end)
