@@ -1,18 +1,21 @@
 -- Environment
--- Ubuntu 20.04 on WSL2 with Windows Terminal 
+-- Ubuntu 20.04 on WSL2 with Windows Terminal
+-- Or 
+-- iTerm on mac OS
 -- TerminalTheme: tokyonight
 -- Font: Caskaydia Cove Nerd Font 10pt
+-- Depends on lazygit,ripgrep,git-graph commands
 
 -- config for Japanese encodings
-vim.opt.encoding = "utf-8"
-vim.opt.fileencoding = "utf-8"
-vim.opt.fileencodings = {"utf-8","cp-932","euc-jp"}
+vim.opt.encoding = 'utf-8'
+vim.opt.fileencoding = 'utf-8'
+vim.opt.fileencodings = {'utf-8','cp-932','euc-jp'}
 
 -- show inputting command
 vim.opt.showcmd = true
 
 -- set backspace config better
-vim.opt.backspace = {"eol","indent","start"}
+vim.opt.backspace = {'eol','indent','start'}
 
 -- scrolling config better
 vim.opt.scrolloff = 5
@@ -62,6 +65,13 @@ require('jetpack.packer').add {
   -- plugins for git
   {'tpope/vim-fugitive'},
   {'rbong/vim-flog'},
+  {'rhysd/git-messenger.vim'},
+
+  -- make terminal better
+  {'akinsho/toggleterm.nvim',
+  config = function()
+    require('toggleterm').setup()
+  end},
 
   -- plugins for debug
   {'mfussenegger/nvim-dap'},
@@ -96,6 +106,7 @@ require('jetpack.packer').add {
 
   -- fuzzy finder
   {
+
     'nvim-telescope/telescope.nvim', tag = '0.1.2',
     requires = { {'nvim-lua/plenary.nvim'} }
   },
@@ -119,33 +130,30 @@ vim.cmd[[colorscheme tokyonight]]
 
 -- customize key mappings and some extra helpful configs!
 -- set leader to <space>
-vim.g.mapleader = " "
+vim.g.mapleader = ' '
 
 -- config of key-manu.nvim
 vim.o.timeoutlen = 300
 
 -- popup key-mapping hint with leader key
 require 'key-menu'.set('n', '<Leader>')
-require 'key-menu'.set('n', '<Leader>t', {desc='Go to ...'})
+require 'key-menu'.set('n', '<Leader>g', {desc='Git'})
+require 'key-menu'.set('n', '<Leader>l', {desc='LSP'})
+require 'key-menu'.set('n', '<Leader>lt', {desc='Go to'})
+require 'key-menu'.set('n', '<Leader>t', {desc='Telescope'})
 
 -- settings for vim-expand-region
 vim.keymap.set('v','v','<Plug>(expand_region_expand)')
 vim.keymap.set('v','V','<Plug>(expand_region_shrink)')
 
 -- settings for nvim-surround
-require("nvim-surround").setup()
+require('nvim-surround').setup()
 
 -- setting for lsp server
 -- init mason
-require("mason").setup()
+require('mason').setup()
 require('mason-lspconfig').setup_handlers({ function(server)
   local opt = {
-    -- -- Function executed when the LSP server startup
-    -- on_attach = function(client, bufnr)
-    --   local opts = { noremap=true, silent=true }
-    --   vim.api.nvim_buf_set_keymap(bufnr, 'n', 'K', '<cmd>lua vim.lsp.buf.hover()<CR>', opts)
-    --   vim.cmd 'autocmd BufWritePre * lua vim.lsp.buf.formatting_sync(nil, 1000)'
-    -- end,
     capabilities = require('cmp_nvim_lsp').default_capabilities(
       vim.lsp.protocol.make_client_capabilities()
     )
@@ -155,20 +163,19 @@ end })
 
 -- 2. build-in LSP function
 -- keyboard shortcut
-vim.keymap.set('n', '<Leader>h',  '<cmd>lua vim.lsp.buf.hover()<CR>', {desc='Show more info'})
-vim.keymap.set('n', '<Leader>f', '<cmd>lua vim.lsp.buf.formatting()<CR>', {desc='Format'})
-vim.keymap.set('n', '<Leader>tr', '<cmd>lua vim.lsp.buf.references()<CR>', {desc = 'References'})
-vim.keymap.set('n', '<Leader>td', '<cmd>lua vim.lsp.buf.definition()<CR>', {desc = 'Definitions'})
-vim.keymap.set('n', '<Leader>tD', '<cmd>lua vim.lsp.buf.declaration()<CR>', {desc = 'Declarations'})
-vim.keymap.set('n', '<Leader>ti', '<cmd>lua vim.lsp.buf.implementation()<CR>', {desc = 'Implemantations'})
-vim.keymap.set('n', '<Leader>tt', '<cmd>lua vim.lsp.buf.type_definition()<CR>', {desc = 'Type defs...'})
+vim.keymap.set('n', '<Leader>lh',  '<cmd>lua vim.lsp.buf.hover()<CR>', {desc='Show more info'})
+vim.keymap.set('n', '<Leader>lf', '<cmd>lua vim.lsp.buf.formatting()<CR>', {desc='Format'})
+vim.keymap.set('n', '<Leader>ltr', '<cmd>lua vim.lsp.buf.references()<CR>', {desc = 'References'})
+vim.keymap.set('n', '<Leader>ld', '<cmd>lua vim.lsp.buf.definition()<CR>', {desc = 'Definitions'})
+vim.keymap.set('n', '<Leader>ltD', '<cmd>lua vim.lsp.buf.declaration()<CR>', {desc = 'Declarations'})
+vim.keymap.set('n', '<Leader>lti', '<cmd>lua vim.lsp.buf.implementation()<CR>', {desc = 'Implemantations'})
+vim.keymap.set('n', '<Leader>ltt', '<cmd>lua vim.lsp.buf.type_definition()<CR>', {desc = 'Type defs...'})
 vim.keymap.set('n', '<F2>', '<cmd>lua vim.lsp.buf.rename()<CR>')
-vim.keymap.set('n', '<Leader>a', '<cmd>lua vim.lsp.buf.code_action()<CR>',{desc = 'Actions..'})
-vim.keymap.set('n', '<Leader>e', '<cmd>lua vim.diagnostic.open_float()<CR>', {desc = 'Show diag..'})
-vim.keymap.set('n', '<Leader>n', '<cmd>lua vim.diagnostic.goto_next()<CR>', {desc = 'Next diag..'})
-vim.keymap.set('n', '<Leader>N', '<cmd>lua vim.diagnostic.goto_prev()<CR>', {desc='Prev diag..'})
+vim.keymap.set('n', '<Leader>la', '<cmd>lua vim.lsp.buf.code_action()<CR>',{desc = 'Actions..'})
+vim.keymap.set('n', 'e', '<cmd>lua vim.diagnostic.goto_next()<CR>', {desc = 'Next diag..'})
+vim.keymap.set('n', 'E', '<cmd>lua vim.diagnostic.goto_prev()<CR>', {desc='Prev diag..'})
 -- LSP handlers
-vim.lsp.handlers["textDocument/publishDiagnostics"] = vim.lsp.with(
+vim.lsp.handlers['textDocument/publishDiagnostics'] = vim.lsp.with(
   vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false }
 )
 -- Reference highlight
@@ -186,30 +193,29 @@ augroup END
 
 -- make sign fancy
 vim.cmd [[
-  sign define DiagnosticSignError text= texthl=DiagnosticSignError linehl= numhl=
-  sign define DiagnosticSignWarn text= texthl=DiagnosticSignWarn linehl= numhl=
-  sign define DiagnosticSignInfo text= texthl=DiagnosticSignInfo linehl= numhl=
+    sign define DiagnosticSignError text= texthl=DiagnosticSignError linehl= numhl=
+  sign define DiagnosticSignWarn text= texthl=DiagnosticSignWarn linehl= numhl=
+  sign define DiagnosticSignInfo text= texthl=DiagnosticSignInfo linehl= numhl=
   sign define DiagnosticSignHint text= texthl=DiagnosticSignHint linehl= numhl=
 ]]
 -- 3. completion (hrsh7th/nvim-cmp)
-local cmp = require("cmp")
+local cmp = require('cmp')
 cmp.setup({
   snippet = {
     expand = function(args)
-      vim.fn["vsnip#anonymous"](args.body)
+      vim.fn['vsnip#anonymous'](args.body)
     end,
   },
   sources = {
-    { name = "nvim_lsp" },
-    { name = "buffer" },
-    { name = "path" },
-  },
-  mapping = cmp.mapping.preset.insert({
-    ["<S-Tab>"] = cmp.mapping.select_prev_item(),
-    ["<Tab>"] = cmp.mapping.select_next_item(),
+    { name = 'nvim_lsp' },
+    { name = 'buffer' },
+    { name = 'path' },
+  }, mapping = cmp.mapping.preset.insert({
+    ['<S-Tab>'] = cmp.mapping.select_prev_item(),
+    ['<Tab>'] = cmp.mapping.select_next_item(),
     ['<C-o>'] = cmp.mapping.complete(),
     ['<C-q>'] = cmp.mapping.abort(),
-    ["<CR>"] = cmp.mapping.confirm { select = true },
+    ['<CR>'] = cmp.mapping.confirm { select = true },
   }),
   experimental = { ghost_text = true,
   },
@@ -220,27 +226,51 @@ cmp.setup.cmdline('/', {
     { name = 'buffer' }
   }
 })
-cmp.setup.cmdline(":", {
+cmp.setup.cmdline(':', {
   mapping = cmp.mapping.preset.cmdline(),
   sources = {
-    { name = "path" },
-    { name = "cmdline" },
+    { name = 'path' },
+    { name = 'cmdline' },
   },
 })
 
 -- setting for showing indent
-require("indent_blankline").setup()
+require('indent_blankline').setup()
 
 -- Fist, load your favorite colorshceme
-local colors = require("tokyonight.colors").setup()
-
+local colors = require('tokyonight.colors').setup()
 local get_mode = require('lualine.utils.mode').get_mode
 
+local hydra_color = {
+  Git = colors.orange,
+  Window = colors.red,
+}
+local active_hydra = {
+  name = nil,
+  color = nil,
+}
+
+local function set_hydra(name,color)
+  active_hydra.name=name
+  active_hydra.color=color
+end
+
+local function get_hydra_name()
+  return active_hydra.name
+end
+
+local function get_hydra_color()
+  return active_hydra.color
+end
+
+local function remove_active_hydra()
+  set_hydra(nil,nil)
+end
 
 package.loaded['nvim-submode'] = nil
 local sm = require('nvim-submode')
 local function submodeNameLualine()
-  return sm.getState().submode_display_name or ' '
+  return get_hydra_name() or ' '
 end
 
 local function modeNameLualine()
@@ -248,19 +278,22 @@ local function modeNameLualine()
 end
 
 local function submodeNameLualineWithBaseMode()
-  local submode = sm.getState().submode_display_name
+  local submode = get_hydra_name()
   if submode then
-    return submode.."("..get_mode()..")"
+    return submode..'('..get_mode()..')'
   else
     return get_mode()
   end
 end
 
-local function submodeLualineColor()
-  -- return nil
-  return sm.getState().submode_color and {bg=sm.getState().submode_color} or nil
+local function hydraLualineColor()
+  return get_hydra_color() and {bg = get_hydra_color()} or nil
 end
 
+local function submodeLualineColor()
+  local color = sm.getState().submode_color
+  return color and {bg=color} or nil
+end
 
 local cascade_component = {
   'mode',
@@ -275,14 +308,15 @@ local cascade_component = {
 local colored_component = {
   {
     -- modeNameLualine,
-    submodeNameLualineWithBaseMode,
+    modeNameLualine,
     color=submodeLualineColor,
     separator = {left='',right=''},
   }
 }
 
 -- config for lualine
-require('lualine').setup {
+local lualine = require('lualine')
+lualine.setup {
   options = {
     globalstatus = true,
     theme = 'tokyonight',
@@ -293,6 +327,42 @@ require('lualine').setup {
   }
 }
 
+local Hydra = require('hydra')
+local window_mode_hint = [[
+󰁣| + 󰜷| h
+󰁋| - 󰜮| j
+󰁓| < 󰜱| k
+󰁚| > 󰜴| l
+]]
+
+--[[Hydra({
+   name = 'Window',
+   mode = 'n',
+   body = '<leader>w',
+   config = {
+    color='pink',
+    on_enter = function ()
+      set_hydra('Window',colors.red)
+      print('Enter Window Hydra')
+      lualine.refresh()
+    end,
+    on_exit = function ()
+      remove_active_hydra()
+      lualine.refresh()
+    end
+   },
+   heads = {
+      { '+', '<C-W>+' },
+      { '-', '<C-W>-' },
+      { '<', '<C-W><' },
+      { '>', '<C-W>>' },
+      { 'h', '<C-W>h' },
+      { 'j', '<C-W>j'},
+      { 'k', '<C-W>k' },
+      { 'l', '<C-W>l' },
+   }
+})]]
+
 local testmode = {
   -- enable to print debug information
   debug = true,
@@ -301,53 +371,216 @@ local testmode = {
   
   -- set minimum duration between each loop
   -- in order to execute vim functions by proper order.
-  min_cycle_duration = 20,
+  -- you should change this property unless you know what you are doing.
+  min_cycle_duration = 0,
 
   lualine = true,
   -- you can set any key except <Esc> as interrupt_key to interrupt waiting key input
-  interrupt_key = "<CR>",
+  interrupt_key = '<CR>',
   -- mode name that set inner
-  mode_name="test",
+  mode_name='test',
   mode_color = colors.orange,
   -- if true, submode collect input numbers to number_list
   number_input = true,
   -- if true, submode automatically repeat keymap action number_list[1] times
   number_modify = true,
-  mode_display_name=" TEST ",
+  mode_display_name=' TEST ',
   keymaps = {
     {
-      map="<C-H><C-W>",
+      map='<C-H><C-W>',
       action=function ()
-        print("Ctrl-H,Ctrl-W")
+        print('Ctrl-H,Ctrl-W')
       end
     },
     {
-      map="<C-H><C-W>i",
+      map='<C-H><C-W>i',
       action=function ()
-        print("Ctrl-H,Ctrl-W,i")
+        print('Ctrl-H,Ctrl-W,i')
       end
     },
   },
   default = function (prefix,c,number_list)
-    print("default:"..prefix..c)
-    --vim.fn.execute("normal a"..prefix..c)
-    vim.fn.execute("normal "..c)
-    --vim.api.nvim_input(prefix..c)
+    print('default:'..prefix..c)
+    --vim.fn.execute('normal a'..prefix..c)
+    --vim.fn.execute('normal '..c)
+    --vim.api.nvim_input('<C-W>>')
+    local key = vim.api.nvim_replace_termcodes(':vertical resize +1<CR>',true,false,true)
+    vim.api.nvim_feedkeys(key,'x',false)
+    --vim.cmd('vertical resize +1')
     --[[vim.schedule(function ()
-      vim.fn.execute("normal j")
+      vim.fn.execute('normal j')
     end)]]
   end,
   afterEnter = function ()
-    print("Enter test submode.")
+    print('Enter test submode.')
   end,
   beforeLeave = function ()
-    print("Will Leave Submode!")
+    print('Will Leave Submode!')
   end,
 }
 
-
+local window_submode = {
+  lualine = true,
+  mode_name='Window',
+  mode_color = colors.red,
+  number_input = true,
+  number_modify = true,
+  mode_display_name='WINDOW',
+  keymaps = {
+    {
+      map='>',
+      action=function ()
+        local key = vim.api.nvim_replace_termcodes('<C-W>>',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+      end
+    },
+    {
+        map='<lt>',
+      action=function ()
+        local key = vim.api.nvim_replace_termcodes('<C-W><',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+      end
+    },
+    {
+      map='+',
+      action=function ()
+        local key = vim.api.nvim_replace_termcodes(':resize +1<CR>',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+      end
+    },
+    {
+      map='-',
+      action=function ()
+        local key = vim.api.nvim_replace_termcodes(':resize -1<CR>',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+      end
+    },
+    {
+      map='h',
+      action=function ()
+        local key = vim.api.nvim_replace_termcodes('<C-W>h',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+      end
+    },
+    {
+      map='j',
+      action=function ()
+        local key = vim.api.nvim_replace_termcodes('<C-W>j',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+      end
+    },
+    {
+      map='k',
+      action=function ()
+        local key = vim.api.nvim_replace_termcodes('<C-W>k',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+      end
+    },
+    {
+      map='l',
+      action=function ()
+        local key = vim.api.nvim_replace_termcodes('<C-W>l',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+      end
+    },
+     {
+      map='t',
+      action=function ()
+        local key = vim.api.nvim_replace_termcodes(':tabn<CR>',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+      end
+    },
+    {
+      map='T',
+      action=function ()
+        local key = vim.api.nvim_replace_termcodes(':tabN<CR>',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+      end
+    },
+    {
+      map='w',
+      action=function ()
+        local key = vim.api.nvim_replace_termcodes('<C-W>w',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+      end
+    },
+    {
+      map='W',
+      action=function ()
+        local key = vim.api.nvim_replace_termcodes('<C-W>W',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+      end
+    },
+    {
+      map='b',
+      action=function ()
+        local key = vim.api.nvim_replace_termcodes(':Telescope buffers<CR>',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+        sm.exitSubmode()
+      end
+    },
+    {
+      map='nn',
+      action = function ()
+        local key = vim.api.nvim_replace_termcodes(':vnew<CR>',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+        sm.exitSubmode()
+      end
+    },
+    {
+      map='nh',
+      action = function ()
+        local key = vim.api.nvim_replace_termcodes(':new<CR>',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+        sm.exitSubmode()
+      end
+    },
+    {
+      map='nt',
+      action = function ()
+        local key = vim.api.nvim_replace_termcodes(':tabnew<CR>',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+        sm.exitSubmode()
+      end
+    },
+  },
+  default = function () end,
+}
 
 local submode = require('nvim-submode')
-vim.keymap.set('i','<C-H>',function ()
-  submode.enterSubmode(testmode)
-end)
+vim.keymap.set('n','<leader>w',function ()
+  submode.enterSubmode(window_submode)
+end, {desc='Window Mode'})
+
+-- config for lazygit
+local Terminal  = require('toggleterm.terminal').Terminal
+local lazygit = Terminal:new({ cmd = 'lazygit', hidden = true ,direction = 'float',})
+
+function _lazygit_toggle()
+  lazygit:toggle()
+end
+
+vim.api.nvim_set_keymap('n', '<leader>gl', '<cmd>lua _lazygit_toggle()<CR>', {noremap = true, silent = true, desc = 'Open LazyGit'})
+vim.api.nvim_set_keymap('n', '<leader>gf', '<cmd>Flog<CR>', {noremap = true, silent = true, desc = 'Flog Graph'})
+-- config for Telescope
+local builtin = require('telescope.builtin')
+vim.keymap.set('n', '<leader>to', builtin.find_files, {desc='Open File...'})
+vim.keymap.set('n', '<Leader>f', builtin.live_grep, {desc='Grep'})
+vim.keymap.set('n', '<Leader>b', builtin.buffers, {desc='Buffers'})
+
+-- Diagnostics Submode
+vim.keymap.set('n','<leader>te',function ()
+  builtin.diagnostics()
+end, {desc='Diagnostics List'})
+
+---- show diagnostic if cursor hold
+local function on_cursor_hold()
+  if vim.lsp.buf.server_ready() then
+    vim.diagnostic.open_float()
+  end
+end
+
+local diagnostic_hover_augroup_name = "lspconfig-diagnostic"
+vim.api.nvim_set_option('updatetime', 500)
+vim.api.nvim_create_augroup(diagnostic_hover_augroup_name, { clear = true })
+vim.api.nvim_create_autocmd({ "CursorHold" }, { group = diagnostic_hover_augroup_name, callback = on_cursor_hold })
