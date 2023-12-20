@@ -49,7 +49,8 @@ require('jetpack.packer').add {
 
   -- colorshceme
   {'folke/tokyonight.nvim'},
-
+  -- add color preview
+  {'brenoprata10/nvim-highlight-colors'},
   -- status line plugins
   {'nvim-lualine/lualine.nvim'},
   {'nvim-tree/nvim-web-devicons'},
@@ -57,10 +58,15 @@ require('jetpack.packer').add {
   -- make gutter fancy
   {'folke/trouble.nvim'},
 
-  -- plugins for text editing
+  -- plugins for moving cursor
   {'terryma/vim-expand-region'},
+  {'ggandor/leap.nvim'},
+  {'atusy/leap-search.nvim'},
+
+  -- plugins for text editing
   {'kylechui/nvim-surround'}, -- re-implamantation of vim-surround by tpope in neovim with lua
   {'lukas-reineke/indent-blankline.nvim'}, -- show indent
+  {'cohama/lexima.vim'},
 
   -- plugins for git
   {'tpope/vim-fugitive'},
@@ -104,12 +110,19 @@ require('jetpack.packer').add {
   {'mhartington/formatter.nvim'},
   {'mfussenegger/nvim-lint'},
 
+  -- for golang
+
   -- fuzzy finder
   {
 
     'nvim-telescope/telescope.nvim', tag = '0.1.2',
     requires = { {'nvim-lua/plenary.nvim'} }
   },
+  {'LukasPietzschmann/telescope-tabs'},
+  {'kyoh86/telescope-windows.nvim'},
+
+  -- filer
+  {'lambdalisue/fern.vim'},
 
   -- other plugins to help my neovim life!
   -- show floating window which gives key mapping hint
@@ -117,6 +130,11 @@ require('jetpack.packer').add {
 
   -- add submode in neovim
   {'anuvyklack/hydra.nvim'},
+
+  -- quickrun
+  {'is0n/jaq-nvim'},
+  -- scratchpad
+  {'metakirby5/codi.vim'},
 
   -- for development
   {'~/project/nvim-submode'},
@@ -126,6 +144,8 @@ require('jetpack.packer').add {
 vim.opt.cursorline = true -- show cursorline
 vim.cmd[[colorscheme tokyonight]]
 
+-- setting for brenoprata10/nvim-highlight-colors
+require('nvim-highlight-colors').setup {}
 -- before customize plugins configs
 
 -- customize key mappings and some extra helpful configs!
@@ -235,8 +255,8 @@ cmp.setup.cmdline(':', {
 })
 
 -- setting for showing indent
-require('indent_blankline').setup()
-
+-- require('indent_blankline').setup()
+require("ibl").setup()
 -- Fist, load your favorite colorshceme
 local colors = require('tokyonight.colors').setup()
 local get_mode = require('lualine.utils.mode').get_mode
@@ -554,7 +574,7 @@ end, {desc='Window Mode'})
 
 -- config for lazygit
 local Terminal  = require('toggleterm.terminal').Terminal
-local lazygit = Terminal:new({ cmd = 'lazygit', hidden = true ,direction = 'float',})
+local lazygit = Terminal:new({ cmd = 'lazygit', hidden = true ,direction = 'float',dir = vim.fn.getcwd()})
 
 function _lazygit_toggle()
   lazygit:toggle()
@@ -563,10 +583,40 @@ end
 vim.api.nvim_set_keymap('n', '<leader>gl', '<cmd>lua _lazygit_toggle()<CR>', {noremap = true, silent = true, desc = 'Open LazyGit'})
 vim.api.nvim_set_keymap('n', '<leader>gf', '<cmd>Flog<CR>', {noremap = true, silent = true, desc = 'Flog Graph'})
 -- config for Telescope
+require('telescope').setup{
+  defaults = {
+    -- Default configuration for telescope goes here:
+    -- config_key = value,
+    mappings = {
+      i = {
+          -- ["<CR>"] = "select_tab"
+      }
+    }
+  },
+  pickers = {
+    -- open the file in new tab if enter key pressed in find_files and live_grep. 
+    find_files = {
+      mappings = {
+        i = {
+          ["<CR>"] = "select_tab"
+        }
+      }
+    },
+    live_grep = {
+      mappings = {
+        i = {
+          ["<CR>"] = "select_tab"
+        }
+      }
+    },
+  },
+  extensions = {
+  }
+}
 local builtin = require('telescope.builtin')
 vim.keymap.set('n', '<leader>to', builtin.find_files, {desc='Open File...'})
 vim.keymap.set('n', '<Leader>f', builtin.live_grep, {desc='Grep'})
-vim.keymap.set('n', '<Leader>b', builtin.buffers, {desc='Buffers'})
+vim.keymap.set('n', '<Leader>b', require("telescope").extensions.windows.list, {desc='Windows and Tab'})
 
 -- Diagnostics Submode
 vim.keymap.set('n','<leader>te',function ()
