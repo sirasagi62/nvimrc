@@ -130,6 +130,9 @@ require('jetpack.packer').add {
   -- other plugins to help my neovim life!
   -- show floating window which gives key mapping hint
   {'linty-org/key-menu.nvim'},
+  { 'anuvyklack/windows.nvim',
+    requires = 'anuvyklack/middleclass'
+  },
 
   -- add submode in neovim
   {'anuvyklack/hydra.nvim'},
@@ -316,6 +319,8 @@ require('guess-indent').setup {}
 -- setting for leap
 require('leap').add_default_mappings()
 
+-- setting for windows.nvim
+require('windows').setup()
 -- setting for hydra & nvim-submode
 local function set_hydra(name,color)
   active_hydra.name=name
