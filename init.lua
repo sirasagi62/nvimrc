@@ -67,6 +67,8 @@ require('jetpack.packer').add {
   {'kylechui/nvim-surround'}, -- re-implamantation of vim-surround by tpope in neovim with lua
   {'lukas-reineke/indent-blankline.nvim'}, -- show indent
   {'cohama/lexima.vim'},
+  {'tpope/vim-commentary'}, -- comment toggle
+  {'nmac427/guess-indent.nvim'}, -- insert indent wisely
 
   -- plugins for git
   {'tpope/vim-fugitive'},
@@ -111,6 +113,7 @@ require('jetpack.packer').add {
   {'mfussenegger/nvim-lint'},
 
   -- for golang
+  {'fatih/vim-go',ft='go'},
 
   -- fuzzy finder
   {
@@ -130,6 +133,9 @@ require('jetpack.packer').add {
 
   -- add submode in neovim
   {'anuvyklack/hydra.nvim'},
+
+  -- make folding far more better :D
+  {'kevinhwang91/nvim-ufo', requires = 'kevinhwang91/promise-async'},
 
   -- quickrun
   {'is0n/jaq-nvim'},
@@ -257,7 +263,38 @@ cmp.setup.cmdline(':', {
 -- setting for showing indent
 -- require('indent_blankline').setup()
 require("ibl").setup()
--- Fist, load your favorite colorshceme
+
+-- setting for nvim-ufo, a folding plugin
+-- from README example
+vim.o.foldcolumn = '1' -- '0' is not bad
+vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
+vim.o.foldlevelstart = 99
+vim.o.foldenable = true
+
+-- Using ufo provider need remap `zR` and `zM`. If Neovim is 0.6.1, remap yourself
+require 'key-menu'.set('n', '<Leader>z', {desc='Folding'})
+vim.keymap.set('n', '<leader>zR', require('ufo').openAllFolds, {desc='Unfold all blocks'})
+vim.keymap.set('n', '<leader>zM', require('ufo').closeAllFolds,{desc='Fold all blocks'})
+vim.keymap.set('n','<leader>z+','za',{desc='Toggle fold'})
+
+-- Option 2: nvim lsp as LSP client
+-- Tell the server the capability of foldingRange,
+-- Neovim hasn't added foldingRange to default capabilities, users must add it manually
+local capabilities = vim.lsp.protocol.make_client_capabilities()
+capabilities.textDocument.foldingRange = {
+    dynamicRegistration = false,
+    lineFoldingOnly = true
+}
+local language_servers = require("lspconfig").util.available_servers() -- or list servers manually like {'gopls', 'clangd'}
+for _, ls in ipairs(language_servers) do
+    require('lspconfig')[ls].setup({
+        capabilities = capabilities
+        -- you can add other fields for setting up lsp server in this table
+    })
+end
+require('ufo').setup()
+
+-- First, load your favorite colorshceme
 local colors = require('tokyonight.colors').setup()
 local get_mode = require('lualine.utils.mode').get_mode
 
@@ -270,6 +307,16 @@ local active_hydra = {
   color = nil,
 }
 
+-- setting for vim-commentary
+vim.keymap.set('n', '<C-/>', 'gcc', {desc = 'Toggle comment'})
+
+-- setting for guess-indent
+require('guess-indent').setup {}
+
+-- setting for leap
+require('leap').add_default_mappings()
+
+-- setting for hydra & nvim-submode
 local function set_hydra(name,color)
   active_hydra.name=name
   active_hydra.color=color
