@@ -69,7 +69,8 @@ require('jetpack.packer').add {
   {'cohama/lexima.vim'},
   {'tpope/vim-commentary'}, -- comment toggle
   {'nmac427/guess-indent.nvim'}, -- insert indent wisely
-
+  {'kana/vim-textobj-user'},
+  {'kana/vim-textobj-line'},
   -- plugins for git
   {'tpope/vim-fugitive'},
   {'rbong/vim-flog'},
@@ -130,6 +131,8 @@ require('jetpack.packer').add {
   -- other plugins to help my neovim life!
   -- show floating window which gives key mapping hint
   {'linty-org/key-menu.nvim'},
+
+  -- automatically resize focused window
   { 'anuvyklack/windows.nvim',
     requires = 'anuvyklack/middleclass'
   },
@@ -144,7 +147,8 @@ require('jetpack.packer').add {
   {'is0n/jaq-nvim'},
   -- scratchpad
   {'metakirby5/codi.vim'},
-
+  -- make swap file better
+  {'chrisbra/Recover.vim'},
   -- for development
   {'~/project/nvim-submode'},
 }
@@ -174,6 +178,20 @@ require 'key-menu'.set('n', '<Leader>t', {desc='Telescope'})
 -- settings for vim-expand-region
 vim.keymap.set('v','v','<Plug>(expand_region_expand)')
 vim.keymap.set('v','V','<Plug>(expand_region_shrink)')
+vim.cmd([[
+let g:expand_region_text_objects = {
+      \ 'iw'  :0,
+      \ 'iW'  :0,
+      \ 'i"'  :1,
+      \ 'i''' :1,
+      \ 'i]'  :1,
+      \ 'ib'  :1, 
+      \ 'iB'  :1, 
+      \ 'il'  :1, 
+      \ 'ip'  :0,
+      \ 'ie'  :0, 
+      \ }
+]])
 
 -- settings for nvim-surround
 require('nvim-surround').setup()
