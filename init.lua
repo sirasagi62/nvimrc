@@ -216,7 +216,7 @@ end })
 -- 2. build-in LSP function
 -- keyboard shortcut
 vim.keymap.set('n', '<Leader>lh',  '<cmd>lua vim.lsp.buf.hover()<CR>', {desc='Show more info'})
-vim.keymap.set('n', '<Leader>lf', '<cmd>lua vim.lsp.buf.formatting()<CR>', {desc='Format'})
+vim.keymap.set('n', '<Leader>lf', '<cmd>lua vim.lsp.buf.format()<CR>', {desc='Format'})
 vim.keymap.set('n', '<Leader>ltr', '<cmd>lua vim.lsp.buf.references()<CR>', {desc = 'References'})
 vim.keymap.set('n', '<Leader>ld', '<cmd>lua vim.lsp.buf.definition()<CR>', {desc = 'Definitions'})
 vim.keymap.set('n', '<Leader>ltD', '<cmd>lua vim.lsp.buf.declaration()<CR>', {desc = 'Declarations'})
