@@ -1,12 +1,13 @@
 -- Environment
 -- Ubuntu 20.04 on WSL2 with Windows Terminal
--- Or 
+-- Or
 -- iTerm on mac OS
 -- TerminalTheme: tokyonight
 -- Font: Caskaydia Cove Nerd Font 10pt
 -- Depends on lazygit,ripgrep,git-graph commands
 
 -- config for Japanese encodings
+local vim=vim
 vim.opt.encoding = 'utf-8'
 vim.opt.fileencoding = 'utf-8'
 vim.opt.fileencodings = {'utf-8','cp-932','euc-jp'}
@@ -60,8 +61,7 @@ require('jetpack.packer').add {
 
   -- plugins for moving cursor
   {'terryma/vim-expand-region'},
-  {'ggandor/leap.nvim'},
-  {'atusy/leap-search.nvim'},
+  {'phaazon/hop.nvim'},
 
   -- plugins for text editing
   {'kylechui/nvim-surround'}, -- re-implamantation of vim-surround by tpope in neovim with lua
@@ -71,6 +71,8 @@ require('jetpack.packer').add {
   {'nmac427/guess-indent.nvim'}, -- insert indent wisely
   {'kana/vim-textobj-user'},
   {'kana/vim-textobj-line'},
+  {'ntpeters/vim-better-whitespace'}, -- trailing space by cmd
+
   -- plugins for git
   {'tpope/vim-fugitive'},
   {'rbong/vim-flog'},
@@ -119,7 +121,8 @@ require('jetpack.packer').add {
   -- fuzzy finder
   {
 
-    'nvim-telescope/telescope.nvim', tag = '0.1.2',
+    'nvim-telescope/telescope.nvim',
+    tag='0.1.x',
     requires = { {'nvim-lua/plenary.nvim'} }
   },
   {'LukasPietzschmann/telescope-tabs'},
@@ -127,6 +130,7 @@ require('jetpack.packer').add {
 
   -- filer
   {'lambdalisue/fern.vim'},
+  {'stevearc/oil.nvim'},
 
   -- other plugins to help my neovim life!
   -- show floating window which gives key mapping hint
@@ -151,6 +155,7 @@ require('jetpack.packer').add {
   {'chrisbra/Recover.vim'},
   -- for development
   {'~/project/nvim-submode'},
+  {'~/project/toggle-cheatsheet.nvim'},
 }
 
 -- setting for colorscheme
@@ -185,16 +190,16 @@ let g:expand_region_text_objects = {
       \ 'i"'  :1,
       \ 'i''' :1,
       \ 'i]'  :1,
-      \ 'ib'  :1, 
-      \ 'iB'  :1, 
-      \ 'il'  :1, 
+      \ 'ib'  :1,
+      \ 'iB'  :1,
+      \ 'il'  :1,
       \ 'ip'  :0,
-      \ 'ie'  :0, 
+      \ 'ie'  :0,
       \ }
 ]])
 
 -- settings for nvim-surround
-require('nvim-surround').setup()
+require('nvim-surround').setup({})
 
 -- setting for lsp server
 -- init mason
@@ -240,7 +245,7 @@ augroup END
 
 -- make sign fancy
 vim.cmd [[
-    sign define DiagnosticSignError text= texthl=DiagnosticSignError linehl= numhl=
+  sign define DiagnosticSignError text= texthl=DiagnosticSignError linehl= numhl=
   sign define DiagnosticSignWarn text= texthl=DiagnosticSignWarn linehl= numhl=
   sign define DiagnosticSignInfo text= texthl=DiagnosticSignInfo linehl= numhl=
   sign define DiagnosticSignHint text= texthl=DiagnosticSignHint linehl= numhl=
@@ -334,41 +339,22 @@ vim.keymap.set('n', '<C-/>', 'gcc', {desc = 'Toggle comment'})
 -- setting for guess-indent
 require('guess-indent').setup {}
 
--- setting for leap
-require('leap').add_default_mappings()
-
+-- setting for hop.nvim
+require('hop').setup()
+vim.keymap.set('n','s',':HopChar2<CR>', {desc='Hop the word'})
 -- setting for windows.nvim
 require('windows').setup()
--- setting for hydra & nvim-submode
-local function set_hydra(name,color)
-  active_hydra.name=name
-  active_hydra.color=color
-end
-
-local function get_hydra_name()
-  return active_hydra.name
-end
-
-local function get_hydra_color()
-  return active_hydra.color
-end
-
-local function remove_active_hydra()
-  set_hydra(nil,nil)
-end
+-- setting for nvim-submode
 
 package.loaded['nvim-submode'] = nil
 local sm = require('nvim-submode')
-local function submodeNameLualine()
-  return get_hydra_name() or ' '
-end
 
-local function modeNameLualine()
+local function submodeNameLualine()
   return sm.getState().submode_display_name or get_mode()
 end
 
 local function submodeNameLualineWithBaseMode()
-  local submode = get_hydra_name()
+  local submode = sm.getState().submode_display_name
   if submode then
     return submode..'('..get_mode()..')'
   else
@@ -376,14 +362,16 @@ local function submodeNameLualineWithBaseMode()
   end
 end
 
-local function hydraLualineColor()
-  return get_hydra_color() and {bg = get_hydra_color()} or nil
-end
-
-local function submodeLualineColor()
+local function submodeLualineBGColor()
   local color = sm.getState().submode_color
   return color and {bg=color} or nil
 end
+
+local function submodeLualineFGColor()
+  local color = sm.getState().submode_color
+  return color and {fg=color} or nil
+end
+
 
 local cascade_component = {
   'mode',
@@ -395,13 +383,43 @@ local cascade_component = {
   },
 }
 
-local colored_component = {
+local colored_submode_component = {
   {
-    -- modeNameLualine,
-    modeNameLualine,
-    color=submodeLualineColor,
+    submodeNameLualine,
+    color=submodeLualineBGColor,
     separator = {left='',right=''},
   }
+}
+
+local location_with_submode = {
+  {
+    'location',
+    color = submodeLualineBGColor,
+    separator = {left='',right=''},
+  }
+
+}
+
+local progress_with_submode = {
+  {
+    'progress',
+    color=submodeLualineFGColor,
+    separator = {left='',right=''},
+  }
+
+}
+
+local branch_with_submode = {
+  {
+    'branch',
+    icon={'', color = submodeLualineFGColor},
+    color = submodeLualineFGColor
+  }
+
+}
+
+local lualine_b_submode = {
+  'diff','diagnostics'
 }
 
 -- config for lualine
@@ -413,52 +431,20 @@ lualine.setup {
     section_separators = { left = '', right = ''},
   },
   sections = {
-    lualine_a = colored_component,
+    lualine_a = colored_submode_component,
+    lualine_b = branch_with_submode,
+    lualine_c = {'diff','diagnostics','filename'},
+    lualine_y = progress_with_submode,
+    lualine_z = location_with_submode,
   }
 }
-
-local Hydra = require('hydra')
-local window_mode_hint = [[
-󰁣| + 󰜷| h
-󰁋| - 󰜮| j
-󰁓| < 󰜱| k
-󰁚| > 󰜴| l
-]]
-
---[[Hydra({
-   name = 'Window',
-   mode = 'n',
-   body = '<leader>w',
-   config = {
-    color='pink',
-    on_enter = function ()
-      set_hydra('Window',colors.red)
-      print('Enter Window Hydra')
-      lualine.refresh()
-    end,
-    on_exit = function ()
-      remove_active_hydra()
-      lualine.refresh()
-    end
-   },
-   heads = {
-      { '+', '<C-W>+' },
-      { '-', '<C-W>-' },
-      { '<', '<C-W><' },
-      { '>', '<C-W>>' },
-      { 'h', '<C-W>h' },
-      { 'j', '<C-W>j'},
-      { 'k', '<C-W>k' },
-      { 'l', '<C-W>l' },
-   }
-})]]
 
 local testmode = {
   -- enable to print debug information
   debug = true,
   -- set duration to wait key input
   --timeoutlen = 1000,
-  
+
   -- set minimum duration between each loop
   -- in order to execute vim functions by proper order.
   -- you should change this property unless you know what you are doing.
@@ -509,6 +495,22 @@ local testmode = {
   end,
 }
 
+package.loaded['toggle-cheatsheet']=nil
+local tcs = require('toggle-cheatsheet').setup(true)
+local function toggle_submode_cs()
+  local cs=[[
+>/<     : width+/-
++/-     : height+/-
+hjkl    : move wins
+tT      : move tabs++/--
+wW      : move wins++/--
+sv      : :sp/:vsp
+n{n,h,t}: new vwin/win/tabs
+b       : :Telescope buffers
+?       : toggle cheatsheet
+]]
+  tcs.toggle(cs)
+end
 local window_submode = {
   lualine = true,
   mode_name='Window',
@@ -516,6 +518,10 @@ local window_submode = {
   number_input = true,
   number_modify = true,
   mode_display_name='WINDOW',
+  afterEnter = toggle_submode_cs,
+  beforeLeave = function ()
+    tcs.closeCheatSheetWin()
+  end,
   keymaps = {
     {
       map='>',
@@ -576,8 +582,9 @@ local window_submode = {
      {
       map='t',
       action=function ()
-        local key = vim.api.nvim_replace_termcodes(':tabn<CR>',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+        --local key = vim.api.nvim_replace_termcodes(':tabn<CR>',true,false,true)
+        -- vim.api.nvim_feedkeys(key,'x',false)
+        vim.cmd [[tabn]]
       end
     },
     {
@@ -610,6 +617,21 @@ local window_submode = {
       end
     },
     {
+      map='s',
+      action=function ()
+        local key = vim.api.nvim_replace_termcodes(':sp<CR>',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+      end
+    },
+    {
+      map='v',
+      action=function ()
+        local key = vim.api.nvim_replace_termcodes(':vsp<CR>',true,false,true)
+        vim.api.nvim_feedkeys(key,'x',false)
+      end
+    },
+
+    {
       map='nn',
       action = function ()
         local key = vim.api.nvim_replace_termcodes(':vnew<CR>',true,false,true)
@@ -633,6 +655,10 @@ local window_submode = {
         sm.exitSubmode()
       end
     },
+    {
+      map='?',
+      action = toggle_submode_cs
+    }
   },
   default = function () end,
 }
@@ -650,8 +676,34 @@ function _lazygit_toggle()
   lazygit:toggle()
 end
 
+-- remake lazygit terminal automatically if current directory is changed
+vim.api.nvim_create_augroup( 'chdirForLazygit', {} )
+vim.api.nvim_create_autocmd( {'DirChanged'}, {
+  group = 'chdirForLazygit',
+  callback = function()
+    lazygit = Terminal:new({ cmd = 'lazygit', hidden = true ,direction = 'float',dir = vim.fn.getcwd()})
+  end
+})
+
 vim.api.nvim_set_keymap('n', '<leader>gl', '<cmd>lua _lazygit_toggle()<CR>', {noremap = true, silent = true, desc = 'Open LazyGit'})
 vim.api.nvim_set_keymap('n', '<leader>gf', '<cmd>Flog<CR>', {noremap = true, silent = true, desc = 'Flog Graph'})
+
+local splitterm = Terminal:new({hidden=true,direction='vertical'})
+
+function _splitterm_toggle()
+  splitterm:toggle()
+end
+
+vim.api.nvim_set_keymap('n', '@', '<cmd>lua _splitterm_toggle()<CR>', {noremap = true,  desc = 'Open @terminal'})
+vim.api.nvim_set_keymap('n', '<C-a>', '<cmd>lua _splitterm_toggle()<CR>', {noremap = true,  desc = 'Open @terminal'})
+vim.api.nvim_set_keymap('t', '<C-a>', '<cmd>lua _splitterm_toggle()<CR>', {noremap = true,  desc = 'Close terminal'})
+
+-- config for make terminal better
+-- set escape key to escape from terminal.
+
+vim.api.nvim_set_keymap('t','<Esc><Esc>',[[<C-\><C-n>]],{noremap=true})
+vim.api.nvim_set_keymap('n','<leader>@',':split | wincmd j |terminal<CR>i',{desc = 'Open new terminal'})
+
 -- config for Telescope
 require('telescope').setup{
   defaults = {
@@ -664,7 +716,7 @@ require('telescope').setup{
     }
   },
   pickers = {
-    -- open the file in new tab if enter key pressed in find_files and live_grep. 
+    -- open the file in new tab if enter key pressed in find_files and live_grep.
     find_files = {
       mappings = {
         i = {
@@ -684,7 +736,7 @@ require('telescope').setup{
   }
 }
 local builtin = require('telescope.builtin')
-vim.keymap.set('n', '<leader>to', builtin.find_files, {desc='Open File...'})
+vim.keymap.set('n', '<leader>o', builtin.find_files, {desc='Open File...'})
 vim.keymap.set('n', '<Leader>f', builtin.live_grep, {desc='Grep'})
 vim.keymap.set('n', '<Leader>b', require("telescope").extensions.windows.list, {desc='Windows and Tab'})
 
@@ -704,3 +756,70 @@ local diagnostic_hover_augroup_name = "lspconfig-diagnostic"
 vim.api.nvim_set_option('updatetime', 500)
 vim.api.nvim_create_augroup(diagnostic_hover_augroup_name, { clear = true })
 vim.api.nvim_create_autocmd({ "CursorHold" }, { group = diagnostic_hover_augroup_name, callback = on_cursor_hold })
+
+M={
+  cheatSheetWin = nil
+}
+function M.setup()
+  return M
+end
+function M.countLinesAndColumns(text)
+    local lineCount = -1
+    local maxColumnCount = 0
+
+    for line in text:gmatch("[^\n]*\n?") do
+        lineCount = lineCount + 1
+
+        local currentColumnCount = vim.fn.strdisplaywidth(line:gsub('\n',''))
+        if currentColumnCount > maxColumnCount then
+            maxColumnCount = currentColumnCount
+        end
+    end
+
+    return lineCount, maxColumnCount
+end
+
+function M.openCheatSheetWin(text)
+  M.closeCheatSheetWin()
+  local api=vim.api
+  local row,col = M.countLinesAndColumns(text)
+  local buf = api.nvim_create_buf(false,true)
+  local lines={}
+  for line in text:gmatch('[^\n]*\n?') do
+    lines[#lines+1] = line:gsub('\n','')
+  end
+
+  vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines)
+  local win=api.nvim_open_win(buf, false,
+    {
+      relative='editor',
+      height=row,
+      width=col+2,
+      row=api.nvim_get_option('lines')-5,
+      col=api.nvim_get_option('columns')-5,
+      anchor='SE',
+      focusable = false,
+      border='rounded'
+    }
+  )
+  vim.api.nvim_win_set_option(win, 'number',  false)
+  api.nvim_win_set_option(win, 'relativenumber', false)
+  api.nvim_win_set_option(win, 'wrap',  false)
+  api.nvim_win_set_option(win, 'cursorline',  false)
+  M.cheatSheetWin = win
+  return win
+end
+
+function M.closeCheatSheetWin()
+  if M.cheatSheetWin then
+    vim.api.nvim_win_close(M.cheatSheetWin,true)
+    M.cheatSheetWin = nil
+  end
+end
+function M.toggle(text)
+  if M.cheatSheetWin then
+    M.closeCheatSheetWin()
+  else
+    M.openCheatSheetWin(text)
+  end
+end
