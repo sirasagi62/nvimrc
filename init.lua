@@ -231,18 +231,21 @@ vim.lsp.handlers['textDocument/publishDiagnostics'] = vim.lsp.with(
   vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false }
 )
 -- Reference highlight
-vim.cmd [[
-set updatetime=500
-highlight LspReferenceText  cterm=underline ctermfg=1 ctermbg=8 gui=underline guifg=#A00000 guibg=#104040
-highlight LspReferenceRead  cterm=underline ctermfg=1 ctermbg=8 gui=underline guifg=#A00000 guibg=#104040
-highlight LspReferenceWrite cterm=underline ctermfg=1 ctermbg=8 gui=underline guifg=#A00000 guibg=#104040
-augroup lsp_document_highlight
-  autocmd!
-  autocmd CursorHold,CursorHoldI * lua vim.lsp.buf.document_highlight()
-  autocmd CursorMoved,CursorMovedI * lua vim.lsp.buf.clear_references()
-augroup END
-]]
-
+local on_attach = function (client, bufnr)
+    if client.server_capabilities.documentHighlightProvider then
+        vim.api.nvim_exec(
+            [[
+            augroup lsp_document_highlight
+              autocmd! * <buffer>
+              autocmd CursorHold,CursorHoldI <buffer> lua vim.lsp.buf.document_highlight()
+              autocmd CursorMoved,CursorMovedI <buffer> lua vim.lsp.buf.clear_references()
+            augroup END
+            ]],
+            false
+        )
+    end
+    require('mason-lspconfig').on_attach(client, bufnr)
+end
 -- make sign fancy
 vim.cmd [[
   sign define DiagnosticSignError text= texthl=DiagnosticSignError linehl= numhl=
@@ -675,6 +678,23 @@ local lazygit = Terminal:new({ cmd = 'lazygit', hidden = true ,direction = 'floa
 function _lazygit_toggle()
   lazygit:toggle()
 end
+
+
+
+
+-- config for zenn-view
+local zv = Terminal:new({ cmd = 'zenn-view', hidden = true ,direction = 'float'})
+
+function _zv_toggle()
+  zv:toggle()
+end
+
+-- add zennview command
+vim.api.nvim_create_user_command(
+  'ZennView',
+  _zv_toggle,
+  {}
+)
 
 -- remake lazygit terminal automatically if current directory is changed
 vim.api.nvim_create_augroup( 'chdirForLazygit', {} )
