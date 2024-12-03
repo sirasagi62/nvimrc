@@ -43,6 +43,13 @@ vim.api.nvim_create_autocmd( {'BufLeave','InsertEnter'}, {
   callback = function() vim.opt.relativenumber = false end
 })
 
+-- Automatic vim-jetpack install
+local jetpackfile = vim.fn.stdpath('data') .. '/site/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim'
+local jetpackurl = "https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim"
+if vim.fn.filereadable(jetpackfile) == 0 then
+  vim.fn.system(string.format('curl -fsSLo %s --create-dirs %s', jetpackfile, jetpackurl))
+end
+
 -- loading plugins
 vim.cmd('packadd vim-jetpack')
 require('jetpack.packer').add {
@@ -94,7 +101,23 @@ require('jetpack.packer').add {
   {
     'nvim-treesitter/nvim-treesitter',
     run = ':TSUpdate',
-  },
+    config = function()
+      require("nvim-treesitter.configs").setup({
+        ensure_installed = {
+          'python',
+          'lua',
+          'javascript',
+          'typescript',
+          'tsx',
+          'cpp',
+          'go',
+        },
+        highlight = {
+          enable = true
+        }
+      })
+    end
+    },
 
   -- plugins for completation{'neovim/nvim-lspconfig'},
   {'neovim/nvim-lspconfig'},
@@ -156,6 +179,7 @@ require('jetpack.packer').add {
   -- for development
   {'~/project/nvim-submode'},
   {'~/project/toggle-cheatsheet.nvim'},
+  {'sirasagi62/tinysegmenter.nvim'},
 }
 
 -- setting for colorscheme
@@ -272,8 +296,6 @@ cmp.setup({
     ['<C-q>'] = cmp.mapping.abort(),
     ['<CR>'] = cmp.mapping.confirm { select = true },
   }),
-  experimental = { ghost_text = true,
-  },
 })
 cmp.setup.cmdline('/', {
   mapping = cmp.mapping.preset.cmdline(),
@@ -288,6 +310,13 @@ cmp.setup.cmdline(':', {
     { name = 'cmdline' },
   },
 })
+
+-- Set up lspconfig.
+local capabilities = require('cmp_nvim_lsp').default_capabilities()
+-- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
+require('lspconfig')['gopls'].setup {
+	capabilities = capabilities
+}
 
 -- setting for showing indent
 -- require('indent_blankline').setup()
@@ -843,3 +872,5 @@ function M.toggle(text)
     M.openCheatSheetWin(text)
   end
 end
+package.loaded['tinysegmenter'] = nil
+tinyseg = require("tinysegmenter")
