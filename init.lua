@@ -8,6 +8,14 @@
 
 -- config for Japanese encodings
 local vim=vim
+
+
+-- customize key mappings and some extra helpful configs!
+-- set leader to <space>
+vim.g.mapleader = ' '
+--vim.api.nvim_set_var('mapleader', ' ')
+-- config of key-manu.nvim
+vim.o.timeoutlen = 300
 vim.opt.encoding = 'utf-8'
 vim.opt.fileencoding = 'utf-8'
 vim.opt.fileencodings = {'utf-8','cp-932','euc-jp'}
@@ -45,6 +53,7 @@ vim.api.nvim_create_autocmd( {'BufLeave','InsertEnter'}, {
 
 -- Automatic vim-jetpack install
 local jetpackfile = vim.fn.stdpath('data') .. '/site/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim'
+local jetpackpluginfolder = vim.fn.stdpath('data') .. '/site/pack/jetpack/opt/vim-jetpack/plugin/'
 local jetpackurl = "https://raw.githubusercontent.com/tani/vim-jetpack/master/plugin/jetpack.vim"
 if vim.fn.filereadable(jetpackfile) == 0 then
   vim.fn.system(string.format('curl -fsSLo %s --create-dirs %s', jetpackfile, jetpackurl))
@@ -111,6 +120,7 @@ require('jetpack.packer').add {
           'tsx',
           'cpp',
           'go',
+          'templ',
         },
         highlight = {
           enable = true
@@ -134,12 +144,18 @@ require('jetpack.packer').add {
   {'hrsh7th/cmp-vsnip'},
   {'hrsh7th/vim-vsnip'},
 
-  -- plugins for diagnostics, fomatting, etc...
+  -- plugins for diagnostics, formatting, etc...
   {'mhartington/formatter.nvim'},
   {'mfussenegger/nvim-lint'},
 
   -- for golang
   {'fatih/vim-go',ft='go'},
+
+  -- for zig
+  {'ziglang/zig.vim'},
+
+  -- for web
+  {'windwp/nvim-ts-autotag'},
 
   -- fuzzy finder
   {
@@ -178,8 +194,10 @@ require('jetpack.packer').add {
   {'chrisbra/Recover.vim'},
   -- for development
   {'~/project/nvim-submode'},
-  {'~/project/toggle-cheatsheet.nvim'},
+  {'sirasagi62/nvim-lcl-lisp-runner'},
+  {'sirasagi62/toggle-cheatsheet.nvim'},
   {'sirasagi62/tinysegmenter.nvim'},
+  {'~/project/vimuno'}
 }
 
 -- setting for colorscheme
@@ -190,12 +208,7 @@ vim.cmd[[colorscheme tokyonight]]
 require('nvim-highlight-colors').setup {}
 -- before customize plugins configs
 
--- customize key mappings and some extra helpful configs!
--- set leader to <space>
-vim.g.mapleader = ' '
 
--- config of key-manu.nvim
-vim.o.timeoutlen = 300
 
 -- popup key-mapping hint with leader key
 require 'key-menu'.set('n', '<Leader>')
@@ -228,14 +241,10 @@ require('nvim-surround').setup({})
 -- setting for lsp server
 -- init mason
 require('mason').setup()
-require('mason-lspconfig').setup_handlers({ function(server)
-  local opt = {
-    capabilities = require('cmp_nvim_lsp').default_capabilities(
-      vim.lsp.protocol.make_client_capabilities()
-    )
-  }
-  require('lspconfig')[server].setup(opt)
-end })
+vim.lsp.config('*', {
+  capabilities = require('cmp_nvim_lsp').default_capabilities(),
+})
+
 
 -- 2. build-in LSP function
 -- keyboard shortcut
@@ -313,10 +322,77 @@ cmp.setup.cmdline(':', {
 
 -- Set up lspconfig.
 local capabilities = require('cmp_nvim_lsp').default_capabilities()
+
 -- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
+-- For Golang
 require('lspconfig')['gopls'].setup {
 	capabilities = capabilities
 }
+
+-- For templ
+vim.lsp.config['html'] = {
+  filetypes = {'html','templ'}
+}
+require('nvim-ts-autotag').setup()
+
+-- For LuaLS
+
+---@param names string[]
+---@return string[]
+local function get_plugin_paths(names)
+  local paths = {}
+  for _, name in ipairs(names) do
+    if require("jetpack").tap(name) then
+      table.insert(paths, jetpackpluginfolder .. name .. "/lua")
+    else
+      vim.notify("Invalid plugin name: " .. name)
+    end
+  end
+  return paths
+end
+
+
+
+---@param plugins string[]
+---@param myplugins string[]
+---@return string[]
+local function library(plugins,myplugins)
+  local paths = get_plugin_paths(plugins)
+
+  for _, name in ipairs(myplugins) do
+    if require("jetpack").tap(name) then
+      table.insert(paths, "~/project/" .. name .. "/lua")
+    else
+      vim.notify("Invalid plugin name: " .. name)
+    end
+  end
+
+  table.insert(paths, vim.fn.stdpath("config") .. "/lua")
+  table.insert(paths, vim.env.VIMRUNTIME .. "/lua")
+  table.insert(paths, "${3rd}/luv/library")
+  table.insert(paths, "${3rd}/busted/library")
+  table.insert(paths, "${3rd}/luassert/library")
+  return paths
+end
+
+require("lspconfig").lua_ls.setup({
+  settings = {
+    Lua = {
+      runtime = {
+        version = "LuaJIT",
+        pathStrict = true,
+        path = { "?.lua", "?/init.lua" },
+      },
+      workspace = {
+        library = library({ 'nvim-cmp' },{"toggle-cheatsheet.nvim"}),
+        checkThirdParty = "Disable",
+      },
+    },
+  },
+})
+
+-- ** Enable LSPs **
+require("mason-lspconfig").setup {}
 
 -- setting for showing indent
 -- require('indent_blankline').setup()
@@ -466,8 +542,8 @@ lualine.setup {
     lualine_a = colored_submode_component,
     lualine_b = branch_with_submode,
     lualine_c = {'diff','diagnostics','filename'},
-    lualine_y = progress_with_submode,
-    lualine_z = location_with_submode,
+    lualine_y = {},--progress_with_submode,
+    lualine_z = {}--location_with_submode,
   }
 }
 
@@ -529,6 +605,7 @@ local testmode = {
 
 package.loaded['toggle-cheatsheet']=nil
 local tcs = require('toggle-cheatsheet').setup(true)
+
 local function toggle_submode_cs()
   local cs=[[
 >/<     : width+/-
@@ -548,7 +625,7 @@ local window_submode = {
   mode_name='Window',
   mode_color = colors.red,
   number_input = true,
-  number_modify = true,
+  submode_count1 = true,
   mode_display_name='WINDOW',
   afterEnter = toggle_submode_cs,
   beforeLeave = function ()
@@ -725,6 +802,19 @@ vim.api.nvim_create_user_command(
   {}
 )
 
+-- config for nvimff
+local nvimff = Terminal:new({ cmd = 'nvimff', hidden = true ,direction = 'float'})
+
+local function _nvimff_toggle()
+  nvimff:toggle()
+end
+
+vim.api.nvim_create_user_command(
+  'Nvimff',
+  _nvimff_toggle,
+  {}
+)
+
 -- remake lazygit terminal automatically if current directory is changed
 vim.api.nvim_create_augroup( 'chdirForLazygit', {} )
 vim.api.nvim_create_autocmd( {'DirChanged'}, {
@@ -743,7 +833,6 @@ function _splitterm_toggle()
   splitterm:toggle()
 end
 
-vim.api.nvim_set_keymap('n', '@', '<cmd>lua _splitterm_toggle()<CR>', {noremap = true,  desc = 'Open @terminal'})
 vim.api.nvim_set_keymap('n', '<C-a>', '<cmd>lua _splitterm_toggle()<CR>', {noremap = true,  desc = 'Open @terminal'})
 vim.api.nvim_set_keymap('t', '<C-a>', '<cmd>lua _splitterm_toggle()<CR>', {noremap = true,  desc = 'Close terminal'})
 
@@ -790,87 +879,64 @@ vim.keymap.set('n', '<Leader>f', builtin.live_grep, {desc='Grep'})
 vim.keymap.set('n', '<Leader>b', require("telescope").extensions.windows.list, {desc='Windows and Tab'})
 
 -- Diagnostics Submode
-vim.keymap.set('n','<leader>te',function ()
+vim.keymap.set('n','<leader>et',function ()
   builtin.diagnostics()
 end, {desc='Diagnostics List'})
 
 ---- show diagnostic if cursor hold
-local function on_cursor_hold()
-  if vim.lsp.buf.server_ready then
-    vim.diagnostic.open_float()
-  end
-end
-
 local diagnostic_hover_augroup_name = "lspconfig-diagnostic"
-vim.api.nvim_set_option('updatetime', 500)
+vim.api.nvim_set_option_value('updatetime', 500,{})
 vim.api.nvim_create_augroup(diagnostic_hover_augroup_name, { clear = true })
 vim.api.nvim_create_autocmd({ "CursorHold" }, { group = diagnostic_hover_augroup_name, callback = vim.diagnostic.open_float })
+vim.keymap.set('n','<Leader>ef',vim.diagnostic.open_float,{desc='Show diagnostic window'})
 
-M={
-  cheatSheetWin = nil
-}
-function M.setup()
-  return M
-end
-function M.countLinesAndColumns(text)
-    local lineCount = -1
-    local maxColumnCount = 0
 
-    for line in text:gmatch("[^\n]*\n?") do
-        lineCount = lineCount + 1
-
-        local currentColumnCount = vim.fn.strdisplaywidth(line:gsub('\n',''))
-        if currentColumnCount > maxColumnCount then
-            maxColumnCount = currentColumnCount
-        end
-    end
-
-    return lineCount, maxColumnCount
-end
-
-function M.openCheatSheetWin(text)
-  M.closeCheatSheetWin()
-  local api=vim.api
-  local row,col = M.countLinesAndColumns(text)
-  local buf = api.nvim_create_buf(false,true)
-  local lines={}
-  for line in text:gmatch('[^\n]*\n?') do
-    lines[#lines+1] = line:gsub('\n','')
-  end
-
-  vim.api.nvim_buf_set_lines(buf, 0, -1, true, lines)
-  local win=api.nvim_open_win(buf, false,
-    {
-      relative='editor',
-      height=row,
-      width=col+2,
-      row=api.nvim_get_option('lines')-5,
-      col=api.nvim_get_option('columns')-5,
-      anchor='SE',
-      focusable = false,
-      border='rounded'
-    }
-  )
-  vim.api.nvim_win_set_option(win, 'number',  false)
-  api.nvim_win_set_option(win, 'relativenumber', false)
-  api.nvim_win_set_option(win, 'wrap',  false)
-  api.nvim_win_set_option(win, 'cursorline',  false)
-  M.cheatSheetWin = win
-  return win
-end
-
-function M.closeCheatSheetWin()
-  if M.cheatSheetWin then
-    vim.api.nvim_win_close(M.cheatSheetWin,true)
-    M.cheatSheetWin = nil
-  end
-end
-function M.toggle(text)
-  if M.cheatSheetWin then
-    M.closeCheatSheetWin()
-  else
-    M.openCheatSheetWin(text)
-  end
-end
 package.loaded['tinysegmenter'] = nil
 tinyseg = require("tinysegmenter")
+
+--example
+-- loading the plugin
+--local tcs = require('toggle-cheatsheet').setup(true)
+
+-- make your own cheat sheet
+local cs1 = tcs.createCheatSheetFromSubmodeKeymap(
+  tcs.conf{
+    {"h","←"},
+    {"j","↓"},
+    {"k","↑"},
+    {"l","→"},
+    {"gg","Go to the top"},
+    {"G","Go to the bottom"},
+    {"%","Go to matching bracket"}
+  }
+)
+
+-- define another cheat sheet
+local cs2 = tcs.createCheatSheetFromSubmodeKeymap(
+  tcs.conf{
+    {"Ctrl + f", "Scroll forward one full screen."},
+    {"Ctrl + b", "Scroll backward one full screen."},
+    {"Ctrl + d", "Scroll down half a screen."},
+    {"Ctrl + u", "Scroll up half a screen."},
+    {"Ctrl + g", "Show the current file name and line number."}
+  }
+)
+
+cs2 = [[
+Ctrl+{f|b}:1スクリーン上/下
+Ctrl+{d|u}:半スクリーン上/下
+Ctrl+g    :現在のファイル名と行数を表示
+]]
+
+-- assign your favorite keymap to display a cheat sheet window.
+vim.keymap.set("n","<Leader>q",function()
+    tcs.toggle(cs1)
+end)
+vim.keymap.set("n","<Leader>Q",function()
+    tcs.toggle(cs2)
+end)
+require("nvim-lcl-lisp-runner").setup({
+  clisp_cmd = {"rlwrap","clasp"},
+  clisp_with_file_cmd = {"rlwrap","clasp","-l"}
+})
+require("vimuno")
