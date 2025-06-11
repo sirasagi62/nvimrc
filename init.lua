@@ -392,7 +392,34 @@ require("lspconfig").lua_ls.setup({
 })
 
 -- ** Enable LSPs **
-require("mason-lspconfig").setup {}
+require("mason-lspconfig").setup {
+  	ensure_installed = {
+			"bashls",
+			"clangd",
+			"cmake",
+			"cssls",
+			"dockerls",
+			"docker_compose_language_service",
+      --"goimports",
+      --"golangci-lint",
+      "golangci_lint_ls",
+			"gopls",
+			"html",
+      "htmx",
+      "lua_ls",
+      --"prettier",
+      --"stylua",
+      "tailwindcss",
+      "templ",
+			"ts_ls",
+			"marksman",
+			"nimls",
+			"pylsp",
+      "zls"
+	}
+}
+
+
 
 -- setting for showing indent
 -- require('indent_blankline').setup()
