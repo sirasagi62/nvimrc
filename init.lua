@@ -7,7 +7,7 @@
 -- Depends on lazygit,ripgrep,git-graph commands
 
 -- config for Japanese encodings
-local vim=vim
+local vim = vim
 
 
 -- customize key mappings and some extra helpful configs!
@@ -18,13 +18,13 @@ vim.g.mapleader = ' '
 vim.o.timeoutlen = 300
 vim.opt.encoding = 'utf-8'
 vim.opt.fileencoding = 'utf-8'
-vim.opt.fileencodings = {'utf-8','cp-932','euc-jp'}
+vim.opt.fileencodings = { 'utf-8', 'cp-932', 'euc-jp' }
 
 -- show inputting command
 vim.opt.showcmd = true
 
 -- set backspace config better
-vim.opt.backspace = {'eol','indent','start'}
+vim.opt.backspace = { 'eol', 'indent', 'start' }
 
 -- scrolling config better
 vim.opt.scrolloff = 5
@@ -40,13 +40,13 @@ vim.opt.smartindent = true
 -- set norelativenumber in insert mode, otherwise relativenumber
 vim.opt.number = true
 
-vim.api.nvim_create_augroup( 'numbertoggle', {} )
-vim.api.nvim_create_autocmd( {'BufEnter','InsertLeave'}, {
+vim.api.nvim_create_augroup('numbertoggle', {})
+vim.api.nvim_create_autocmd({ 'BufEnter', 'InsertLeave' }, {
   group = 'numbertoggle',
   callback = function() vim.opt.relativenumber = true end
 })
 
-vim.api.nvim_create_autocmd( {'BufLeave','InsertEnter'}, {
+vim.api.nvim_create_autocmd({ 'BufLeave', 'InsertEnter' }, {
   group = 'numbertoggle',
   callback = function() vim.opt.relativenumber = false end
 })
@@ -62,49 +62,49 @@ end
 -- loading plugins
 vim.cmd('packadd vim-jetpack')
 require('jetpack.packer').add {
-  {'tani/vim-jetpack'},
+  { 'tani/vim-jetpack' },
 
   -- colorshceme
-  {'folke/tokyonight.nvim'},
+  { 'folke/tokyonight.nvim' },
   -- add color preview
-  {'brenoprata10/nvim-highlight-colors'},
+  { 'brenoprata10/nvim-highlight-colors' },
   -- status line plugins
-  {'nvim-lualine/lualine.nvim'},
-  {'nvim-tree/nvim-web-devicons'},
+  { 'nvim-lualine/lualine.nvim' },
+  { 'nvim-tree/nvim-web-devicons' },
 
   -- make gutter fancy
-  {'folke/trouble.nvim'},
+  { 'folke/trouble.nvim' },
 
   -- plugins for moving cursor
-  {'terryma/vim-expand-region'},
-  {'phaazon/hop.nvim'},
+  { 'terryma/vim-expand-region' },
+  { 'phaazon/hop.nvim' },
 
   -- plugins for text editing
-  {'kylechui/nvim-surround'}, -- re-implamantation of vim-surround by tpope in neovim with lua
-  {'lukas-reineke/indent-blankline.nvim'}, -- show indent
-  {'cohama/lexima.vim'},
-  {'tpope/vim-commentary'}, -- comment toggle
-  {'nmac427/guess-indent.nvim'}, -- insert indent wisely
-  {'kana/vim-textobj-user'},
-  {'kana/vim-textobj-line'},
-  {'ntpeters/vim-better-whitespace'}, -- trailing space by cmd
+  { 'kylechui/nvim-surround' },              -- re-implamantation of vim-surround by tpope in neovim with lua
+  { 'lukas-reineke/indent-blankline.nvim' }, -- show indent
+  { 'cohama/lexima.vim' },
+  { 'tpope/vim-commentary' },                -- comment toggle
+  { 'nmac427/guess-indent.nvim' },           -- insert indent wisely
+  { 'kana/vim-textobj-user' },
+  { 'kana/vim-textobj-line' },
+  { 'ntpeters/vim-better-whitespace' }, -- trailing space by cmd
 
   -- plugins for git
-  {'tpope/vim-fugitive'},
-  {'rbong/vim-flog'},
-  {'rhysd/git-messenger.vim'},
+  { 'tpope/vim-fugitive' },
+  { 'rbong/vim-flog' },
+  { 'rhysd/git-messenger.vim' },
 
   -- make terminal better
-  {'akinsho/toggleterm.nvim',
-  config = function()
-    require('toggleterm').setup()
-  end},
+  { 'akinsho/toggleterm.nvim',
+    config = function()
+      require('toggleterm').setup()
+    end },
 
   -- plugins for debug
-  {'mfussenegger/nvim-dap'},
-  {'rcarriga/nvim-dap-ui'},
-  {'leoluz/nvim-dap-go'},
-  {'theHamsta/nvim-dap-virtual-text'},
+  { 'mfussenegger/nvim-dap' },
+  { 'rcarriga/nvim-dap-ui' },
+  { 'leoluz/nvim-dap-go' },
+  { 'theHamsta/nvim-dap-virtual-text' },
 
   -- plugins for syntax highlight
   {
@@ -127,53 +127,53 @@ require('jetpack.packer').add {
         }
       })
     end
-    },
+  },
 
   -- plugins for completation{'neovim/nvim-lspconfig'},
-  {'neovim/nvim-lspconfig'},
-  {'williamboman/mason.nvim'},
-  {'williamboman/mason-lspconfig.nvim'},
+  { 'neovim/nvim-lspconfig' },
+  { 'williamboman/mason.nvim' },
+  { 'williamboman/mason-lspconfig.nvim' },
 
-  {'hrsh7th/cmp-nvim-lsp'},
-  {'hrsh7th/cmp-buffer'},
-  {'hrsh7th/cmp-path'},
-  {'hrsh7th/cmp-cmdline'},
-  {'hrsh7th/nvim-cmp'},
+  { 'hrsh7th/cmp-nvim-lsp' },
+  { 'hrsh7th/cmp-buffer' },
+  { 'hrsh7th/cmp-path' },
+  { 'hrsh7th/cmp-cmdline' },
+  { 'hrsh7th/nvim-cmp' },
 
   -- snippets plugins
-  {'hrsh7th/cmp-vsnip'},
-  {'hrsh7th/vim-vsnip'},
+  { 'hrsh7th/cmp-vsnip' },
+  { 'hrsh7th/vim-vsnip' },
 
   -- plugins for diagnostics, formatting, etc...
-  {'mhartington/formatter.nvim'},
-  {'mfussenegger/nvim-lint'},
+  { 'mhartington/formatter.nvim' },
+  { 'mfussenegger/nvim-lint' },
 
   -- for golang
-  {'fatih/vim-go',ft='go'},
+  { 'fatih/vim-go',                     ft = 'go' },
 
   -- for zig
-  {'ziglang/zig.vim'},
+  { 'ziglang/zig.vim' },
 
   -- for web
-  {'windwp/nvim-ts-autotag'},
+  { 'windwp/nvim-ts-autotag' },
 
   -- fuzzy finder
   {
 
     'nvim-telescope/telescope.nvim',
-    tag='0.1.x',
-    requires = { {'nvim-lua/plenary.nvim'} }
+    tag = '0.1.x',
+    requires = { { 'nvim-lua/plenary.nvim' } }
   },
-  {'LukasPietzschmann/telescope-tabs'},
-  {'kyoh86/telescope-windows.nvim'},
+  { 'LukasPietzschmann/telescope-tabs' },
+  { 'kyoh86/telescope-windows.nvim' },
 
   -- filer
-  {'lambdalisue/fern.vim'},
-  {'stevearc/oil.nvim'},
+  { 'lambdalisue/fern.vim' },
+  { 'stevearc/oil.nvim' },
 
   -- other plugins to help my neovim life!
   -- show floating window which gives key mapping hint
-  {'linty-org/key-menu.nvim'},
+  { 'linty-org/key-menu.nvim' },
 
   -- automatically resize focused window
   { 'anuvyklack/windows.nvim',
@@ -181,28 +181,28 @@ require('jetpack.packer').add {
   },
 
   -- add submode in neovim
-  {'anuvyklack/hydra.nvim'},
+  { 'anuvyklack/hydra.nvim' },
 
   -- make folding far more better :D
-  {'kevinhwang91/nvim-ufo', requires = 'kevinhwang91/promise-async'},
+  { 'kevinhwang91/nvim-ufo',            requires = 'kevinhwang91/promise-async' },
 
   -- quickrun
-  {'is0n/jaq-nvim'},
+  { 'is0n/jaq-nvim' },
   -- scratchpad
-  {'metakirby5/codi.vim'},
+  { 'metakirby5/codi.vim' },
   -- make swap file better
-  {'chrisbra/Recover.vim'},
+  { 'chrisbra/Recover.vim' },
   -- for development
-  {'~/project/nvim-submode'},
-  {'sirasagi62/nvim-lcl-lisp-runner'},
-  {'sirasagi62/toggle-cheatsheet.nvim'},
-  {'sirasagi62/tinysegmenter.nvim'},
-  {'~/project/vimuno'}
+  { '~/project/nvim-submode' },
+  { 'sirasagi62/nvim-lcl-lisp-runner' },
+  { 'sirasagi62/toggle-cheatsheet.nvim' },
+  { 'sirasagi62/tinysegmenter.nvim' },
+  { '~/project/vimuno' }
 }
 
 -- setting for colorscheme
 vim.opt.cursorline = true -- show cursorline
-vim.cmd[[colorscheme tokyonight]]
+vim.cmd [[colorscheme tokyonight]]
 
 -- setting for brenoprata10/nvim-highlight-colors
 require('nvim-highlight-colors').setup {}
@@ -212,14 +212,14 @@ require('nvim-highlight-colors').setup {}
 
 -- popup key-mapping hint with leader key
 require 'key-menu'.set('n', '<Leader>')
-require 'key-menu'.set('n', '<Leader>g', {desc='Git'})
-require 'key-menu'.set('n', '<Leader>l', {desc='LSP'})
-require 'key-menu'.set('n', '<Leader>lt', {desc='Go to'})
-require 'key-menu'.set('n', '<Leader>t', {desc='Telescope'})
+require 'key-menu'.set('n', '<Leader>g', { desc = 'Git' })
+require 'key-menu'.set('n', '<Leader>l', { desc = 'LSP' })
+require 'key-menu'.set('n', '<Leader>lt', { desc = 'Go to' })
+require 'key-menu'.set('n', '<Leader>t', { desc = 'Telescope' })
 
 -- settings for vim-expand-region
-vim.keymap.set('v','v','<Plug>(expand_region_expand)')
-vim.keymap.set('v','V','<Plug>(expand_region_shrink)')
+vim.keymap.set('v', 'v', '<Plug>(expand_region_expand)')
+vim.keymap.set('v', 'V', '<Plug>(expand_region_shrink)')
 vim.cmd([[
 let g:expand_region_text_objects = {
       \ 'iw'  :0,
@@ -248,36 +248,36 @@ vim.lsp.config('*', {
 
 -- 2. build-in LSP function
 -- keyboard shortcut
-vim.keymap.set('n', '<Leader>lh',  '<cmd>lua vim.lsp.buf.hover()<CR>', {desc='Show more info'})
-vim.keymap.set('n', '<Leader>lf', '<cmd>lua vim.lsp.buf.format()<CR>', {desc='Format'})
-vim.keymap.set('n', '<Leader>ltr', '<cmd>lua vim.lsp.buf.references()<CR>', {desc = 'References'})
-vim.keymap.set('n', '<Leader>ld', '<cmd>lua vim.lsp.buf.definition()<CR>', {desc = 'Definitions'})
-vim.keymap.set('n', '<Leader>ltD', '<cmd>lua vim.lsp.buf.declaration()<CR>', {desc = 'Declarations'})
-vim.keymap.set('n', '<Leader>lti', '<cmd>lua vim.lsp.buf.implementation()<CR>', {desc = 'Implemantations'})
-vim.keymap.set('n', '<Leader>ltt', '<cmd>lua vim.lsp.buf.type_definition()<CR>', {desc = 'Type defs...'})
+vim.keymap.set('n', '<Leader>lh', '<cmd>lua vim.lsp.buf.hover()<CR>', { desc = 'Show more info' })
+vim.keymap.set('n', '<Leader>lf', '<cmd>lua vim.lsp.buf.format()<CR>', { desc = 'Format' })
+vim.keymap.set('n', '<Leader>ltr', '<cmd>lua vim.lsp.buf.references()<CR>', { desc = 'References' })
+vim.keymap.set('n', '<Leader>ld', '<cmd>lua vim.lsp.buf.definition()<CR>', { desc = 'Definitions' })
+vim.keymap.set('n', '<Leader>ltD', '<cmd>lua vim.lsp.buf.declaration()<CR>', { desc = 'Declarations' })
+vim.keymap.set('n', '<Leader>lti', '<cmd>lua vim.lsp.buf.implementation()<CR>', { desc = 'Implemantations' })
+vim.keymap.set('n', '<Leader>ltt', '<cmd>lua vim.lsp.buf.type_definition()<CR>', { desc = 'Type defs...' })
 vim.keymap.set('n', '<F2>', '<cmd>lua vim.lsp.buf.rename()<CR>')
-vim.keymap.set('n', '<Leader>la', '<cmd>lua vim.lsp.buf.code_action()<CR>',{desc = 'Actions..'})
-vim.keymap.set('n', 'e', '<cmd>lua vim.diagnostic.goto_next()<CR>', {desc = 'Next diag..'})
-vim.keymap.set('n', 'E', '<cmd>lua vim.diagnostic.goto_prev()<CR>', {desc='Prev diag..'})
+vim.keymap.set('n', '<Leader>la', '<cmd>lua vim.lsp.buf.code_action()<CR>', { desc = 'Actions..' })
+vim.keymap.set('n', 'e', '<cmd>lua vim.diagnostic.goto_next()<CR>', { desc = 'Next diag..' })
+vim.keymap.set('n', 'E', '<cmd>lua vim.diagnostic.goto_prev()<CR>', { desc = 'Prev diag..' })
 -- LSP handlers
 vim.lsp.handlers['textDocument/publishDiagnostics'] = vim.lsp.with(
   vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false }
 )
 -- Reference highlight
-local on_attach = function (client, bufnr)
-    if client.server_capabilities.documentHighlightProvider then
-        vim.api.nvim_exec(
-            [[
+local on_attach = function(client, bufnr)
+  if client.server_capabilities.documentHighlightProvider then
+    vim.api.nvim_exec(
+      [[
             augroup lsp_document_highlight
               autocmd! * <buffer>
               autocmd CursorHold,CursorHoldI <buffer> lua vim.lsp.buf.document_highlight()
               autocmd CursorMoved,CursorMovedI <buffer> lua vim.lsp.buf.clear_references()
             augroup END
             ]],
-            false
-        )
-    end
-    require('mason-lspconfig').on_attach(client, bufnr)
+      false
+    )
+  end
+  require('mason-lspconfig').on_attach(client, bufnr)
 end
 -- make sign fancy
 vim.cmd [[
@@ -298,7 +298,8 @@ cmp.setup({
     { name = 'nvim_lsp' },
     { name = 'buffer' },
     { name = 'path' },
-  }, mapping = cmp.mapping.preset.insert({
+  },
+  mapping = cmp.mapping.preset.insert({
     ['<S-Tab>'] = cmp.mapping.select_prev_item(),
     ['<Tab>'] = cmp.mapping.select_next_item(),
     ['<C-o>'] = cmp.mapping.complete(),
@@ -326,12 +327,12 @@ local capabilities = require('cmp_nvim_lsp').default_capabilities()
 -- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
 -- For Golang
 require('lspconfig')['gopls'].setup {
-	capabilities = capabilities
+  capabilities = capabilities
 }
 
 -- For templ
 vim.lsp.config['html'] = {
-  filetypes = {'html','templ'}
+  filetypes = { 'html', 'templ' }
 }
 require('nvim-ts-autotag').setup()
 
@@ -356,7 +357,7 @@ end
 ---@param plugins string[]
 ---@param myplugins string[]
 ---@return string[]
-local function library(plugins,myplugins)
+local function library(plugins, myplugins)
   local paths = get_plugin_paths(plugins)
 
   for _, name in ipairs(myplugins) do
@@ -384,7 +385,7 @@ require("lspconfig").lua_ls.setup({
         path = { "?.lua", "?/init.lua" },
       },
       workspace = {
-        library = library({ 'nvim-cmp' },{"toggle-cheatsheet.nvim"}),
+        library = library({ 'nvim-cmp' }, { "toggle-cheatsheet.nvim" }),
         checkThirdParty = "Disable",
       },
     },
@@ -393,30 +394,30 @@ require("lspconfig").lua_ls.setup({
 
 -- ** Enable LSPs **
 require("mason-lspconfig").setup {
-  	ensure_installed = {
-			"bashls",
-			"clangd",
-			"cmake",
-			"cssls",
-			"dockerls",
-			"docker_compose_language_service",
-      --"goimports",
-      --"golangci-lint",
-      "golangci_lint_ls",
-			"gopls",
-			"html",
-      "htmx",
-      "lua_ls",
-      --"prettier",
-      --"stylua",
-      "tailwindcss",
-      "templ",
-			"ts_ls",
-			"marksman",
-			"nimls",
-			"pylsp",
-      "zls"
-	}
+  ensure_installed = {
+    "bashls",
+    "clangd",
+    "cmake",
+    "cssls",
+    "dockerls",
+    "docker_compose_language_service",
+    --"goimports",
+    --"golangci-lint",
+    "golangci_lint_ls",
+    "gopls",
+    "html",
+    "htmx",
+    "lua_ls",
+    --"prettier",
+    --"stylua",
+    "tailwindcss",
+    "templ",
+    "ts_ls",
+    "marksman",
+    "nimls",
+    "pylsp",
+    "zls"
+  }
 }
 
 
@@ -428,30 +429,30 @@ require("ibl").setup()
 -- setting for nvim-ufo, a folding plugin
 -- from README example
 vim.o.foldcolumn = '1' -- '0' is not bad
-vim.o.foldlevel = 99 -- Using ufo provider need a large value, feel free to decrease the value
+vim.o.foldlevel = 99   -- Using ufo provider need a large value, feel free to decrease the value
 vim.o.foldlevelstart = 99
 vim.o.foldenable = true
 
 -- Using ufo provider need remap `zR` and `zM`. If Neovim is 0.6.1, remap yourself
-require 'key-menu'.set('n', '<Leader>z', {desc='Folding'})
-vim.keymap.set('n', '<leader>zR', require('ufo').openAllFolds, {desc='Unfold all blocks'})
-vim.keymap.set('n', '<leader>zM', require('ufo').closeAllFolds,{desc='Fold all blocks'})
-vim.keymap.set('n','<leader>z+','za',{desc='Toggle fold'})
+require 'key-menu'.set('n', '<Leader>z', { desc = 'Folding' })
+vim.keymap.set('n', '<leader>zR', require('ufo').openAllFolds, { desc = 'Unfold all blocks' })
+vim.keymap.set('n', '<leader>zM', require('ufo').closeAllFolds, { desc = 'Fold all blocks' })
+vim.keymap.set('n', '<leader>z+', 'za', { desc = 'Toggle fold' })
 
 -- Option 2: nvim lsp as LSP client
 -- Tell the server the capability of foldingRange,
 -- Neovim hasn't added foldingRange to default capabilities, users must add it manually
 local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities.textDocument.foldingRange = {
-    dynamicRegistration = false,
-    lineFoldingOnly = true
+  dynamicRegistration = false,
+  lineFoldingOnly = true
 }
 local language_servers = require("lspconfig").util.available_servers() -- or list servers manually like {'gopls', 'clangd'}
 for _, ls in ipairs(language_servers) do
-    require('lspconfig')[ls].setup({
-        capabilities = capabilities
-        -- you can add other fields for setting up lsp server in this table
-    })
+  require('lspconfig')[ls].setup({
+    capabilities = capabilities
+    -- you can add other fields for setting up lsp server in this table
+  })
 end
 require('ufo').setup()
 
@@ -469,14 +470,14 @@ local active_hydra = {
 }
 
 -- setting for vim-commentary
-vim.keymap.set('n', '<C-/>', 'gcc', {desc = 'Toggle comment'})
+vim.keymap.set('n', '<C-/>', 'gcc', { desc = 'Toggle comment' })
 
 -- setting for guess-indent
 require('guess-indent').setup {}
 
 -- setting for hop.nvim
 require('hop').setup()
-vim.keymap.set('n','s',':HopChar2<CR>', {desc='Hop the word'})
+vim.keymap.set('n', 's', ':HopChar2<CR>', { desc = 'Hop the word' })
 -- setting for windows.nvim
 require('windows').setup()
 -- setting for nvim-submode
@@ -491,7 +492,7 @@ end
 local function submodeNameLualineWithBaseMode()
   local submode = sm.getState().submode_display_name
   if submode then
-    return submode..'('..get_mode()..')'
+    return submode .. '(' .. get_mode() .. ')'
   else
     return get_mode()
   end
@@ -499,12 +500,12 @@ end
 
 local function submodeLualineBGColor()
   local color = sm.getState().submode_color
-  return color and {bg=color} or nil
+  return color and { bg = color } or nil
 end
 
 local function submodeLualineFGColor()
   local color = sm.getState().submode_color
-  return color and {fg=color} or nil
+  return color and { fg = color } or nil
 end
 
 
@@ -512,8 +513,8 @@ local cascade_component = {
   'mode',
   {
     submodeNameLualine,
-    cond = function ()
-      return submodeNameLualine()~=' '
+    cond = function()
+      return submodeNameLualine() ~= ' '
     end
   },
 }
@@ -521,8 +522,8 @@ local cascade_component = {
 local colored_submode_component = {
   {
     submodeNameLualine,
-    color=submodeLualineBGColor,
-    separator = {left='',right=''},
+    color = submodeLualineBGColor,
+    separator = { left = '', right = '' },
   }
 }
 
@@ -530,7 +531,7 @@ local location_with_submode = {
   {
     'location',
     color = submodeLualineBGColor,
-    separator = {left='',right=''},
+    separator = { left = '', right = '' },
   }
 
 }
@@ -538,8 +539,8 @@ local location_with_submode = {
 local progress_with_submode = {
   {
     'progress',
-    color=submodeLualineFGColor,
-    separator = {left='',right=''},
+    color = submodeLualineFGColor,
+    separator = { left = '', right = '' },
   }
 
 }
@@ -547,14 +548,14 @@ local progress_with_submode = {
 local branch_with_submode = {
   {
     'branch',
-    icon={'', color = submodeLualineFGColor},
+    icon = { '', color = submodeLualineFGColor },
     color = submodeLualineFGColor
   }
 
 }
 
 local lualine_b_submode = {
-  'diff','diagnostics'
+  'diff', 'diagnostics'
 }
 
 -- config for lualine
@@ -563,14 +564,14 @@ lualine.setup {
   options = {
     globalstatus = true,
     theme = 'tokyonight',
-    section_separators = { left = '', right = ''},
+    section_separators = { left = '', right = '' },
   },
   sections = {
     lualine_a = colored_submode_component,
     lualine_b = branch_with_submode,
-    lualine_c = {'diff','diagnostics','filename'},
-    lualine_y = {},--progress_with_submode,
-    lualine_z = {}--location_with_submode,
+    lualine_c = { 'diff', 'diagnostics', 'filename' },
+    lualine_y = {}, --progress_with_submode,
+    lualine_z = {}  --location_with_submode,
   }
 }
 
@@ -589,52 +590,52 @@ local testmode = {
   -- you can set any key except <Esc> as interrupt_key to interrupt waiting key input
   interrupt_key = '<CR>',
   -- mode name that set inner
-  mode_name='test',
+  mode_name = 'test',
   mode_color = colors.orange,
   -- if true, submode collect input numbers to number_list
   number_input = true,
   -- if true, submode automatically repeat keymap action number_list[1] times
   number_modify = true,
-  mode_display_name=' TEST ',
+  mode_display_name = ' TEST ',
   keymaps = {
     {
-      map='<C-H><C-W>',
-      action=function ()
+      map = '<C-H><C-W>',
+      action = function()
         print('Ctrl-H,Ctrl-W')
       end
     },
     {
-      map='<C-H><C-W>i',
-      action=function ()
+      map = '<C-H><C-W>i',
+      action = function()
         print('Ctrl-H,Ctrl-W,i')
       end
     },
   },
-  default = function (prefix,c,number_list)
-    print('default:'..prefix..c)
+  default = function(prefix, c, number_list)
+    print('default:' .. prefix .. c)
     --vim.fn.execute('normal a'..prefix..c)
     --vim.fn.execute('normal '..c)
     --vim.api.nvim_input('<C-W>>')
-    local key = vim.api.nvim_replace_termcodes(':vertical resize +1<CR>',true,false,true)
-    vim.api.nvim_feedkeys(key,'x',false)
+    local key = vim.api.nvim_replace_termcodes(':vertical resize +1<CR>', true, false, true)
+    vim.api.nvim_feedkeys(key, 'x', false)
     --vim.cmd('vertical resize +1')
     --[[vim.schedule(function ()
       vim.fn.execute('normal j')
     end)]]
   end,
-  afterEnter = function ()
+  afterEnter = function()
     print('Enter test submode.')
   end,
-  beforeLeave = function ()
+  beforeLeave = function()
     print('Will Leave Submode!')
   end,
 }
 
-package.loaded['toggle-cheatsheet']=nil
+package.loaded['toggle-cheatsheet'] = nil
 local tcs = require('toggle-cheatsheet').setup(true)
 
 local function toggle_submode_cs()
-  local cs=[[
+  local cs = [[
 >/<     : width+/-
 +/-     : height+/-
 hjkl    : move wins
@@ -649,174 +650,171 @@ b       : :Telescope buffers
 end
 local window_submode = {
   lualine = true,
-  mode_name='Window',
+  mode_name = 'Window',
   mode_color = colors.red,
   number_input = true,
   submode_count1 = true,
-  mode_display_name='WINDOW',
+  mode_display_name = 'WINDOW',
   afterEnter = toggle_submode_cs,
-  beforeLeave = function ()
+  beforeLeave = function()
     tcs.closeCheatSheetWin()
   end,
   keymaps = {
     {
-      map='>',
-      action=function ()
-        local key = vim.api.nvim_replace_termcodes('<C-W>>',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = '>',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes('<C-W>>', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
       end
     },
     {
-        map='<lt>',
-      action=function ()
-        local key = vim.api.nvim_replace_termcodes('<C-W><',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = '<lt>',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes('<C-W><', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
       end
     },
     {
-      map='+',
-      action=function ()
-        local key = vim.api.nvim_replace_termcodes(':resize +1<CR>',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = '+',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes(':resize +1<CR>', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
       end
     },
     {
-      map='-',
-      action=function ()
-        local key = vim.api.nvim_replace_termcodes(':resize -1<CR>',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = '-',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes(':resize -1<CR>', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
       end
     },
     {
-      map='h',
-      action=function ()
-        local key = vim.api.nvim_replace_termcodes('<C-W>h',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = 'h',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes('<C-W>h', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
       end
     },
     {
-      map='j',
-      action=function ()
-        local key = vim.api.nvim_replace_termcodes('<C-W>j',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = 'j',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes('<C-W>j', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
       end
     },
     {
-      map='k',
-      action=function ()
-        local key = vim.api.nvim_replace_termcodes('<C-W>k',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = 'k',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes('<C-W>k', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
       end
     },
     {
-      map='l',
-      action=function ()
-        local key = vim.api.nvim_replace_termcodes('<C-W>l',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = 'l',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes('<C-W>l', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
       end
     },
-     {
-      map='t',
-      action=function ()
+    {
+      map = 't',
+      action = function()
         --local key = vim.api.nvim_replace_termcodes(':tabn<CR>',true,false,true)
         -- vim.api.nvim_feedkeys(key,'x',false)
         vim.cmd [[tabn]]
       end
     },
     {
-      map='T',
-      action=function ()
-        local key = vim.api.nvim_replace_termcodes(':tabN<CR>',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = 'T',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes(':tabN<CR>', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
       end
     },
     {
-      map='w',
-      action=function ()
-        local key = vim.api.nvim_replace_termcodes('<C-W>w',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = 'w',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes('<C-W>w', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
       end
     },
     {
-      map='W',
-      action=function ()
-        local key = vim.api.nvim_replace_termcodes('<C-W>W',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = 'W',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes('<C-W>W', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
       end
     },
     {
-      map='b',
-      action=function ()
-        local key = vim.api.nvim_replace_termcodes(':Telescope buffers<CR>',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = 'b',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes(':Telescope buffers<CR>', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
         sm.exitSubmode()
       end
     },
     {
-      map='s',
-      action=function ()
-        local key = vim.api.nvim_replace_termcodes(':sp<CR>',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = 's',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes(':sp<CR>', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
       end
     },
     {
-      map='v',
-      action=function ()
-        local key = vim.api.nvim_replace_termcodes(':vsp<CR>',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = 'v',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes(':vsp<CR>', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
       end
     },
 
     {
-      map='nn',
-      action = function ()
-        local key = vim.api.nvim_replace_termcodes(':vnew<CR>',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = 'nn',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes(':vnew<CR>', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
         sm.exitSubmode()
       end
     },
     {
-      map='nh',
-      action = function ()
-        local key = vim.api.nvim_replace_termcodes(':new<CR>',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = 'nh',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes(':new<CR>', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
         sm.exitSubmode()
       end
     },
     {
-      map='nt',
-      action = function ()
-        local key = vim.api.nvim_replace_termcodes(':tabnew<CR>',true,false,true)
-        vim.api.nvim_feedkeys(key,'x',false)
+      map = 'nt',
+      action = function()
+        local key = vim.api.nvim_replace_termcodes(':tabnew<CR>', true, false, true)
+        vim.api.nvim_feedkeys(key, 'x', false)
         sm.exitSubmode()
       end
     },
     {
-      map='?',
+      map = '?',
       action = toggle_submode_cs
     }
   },
-  default = function () end,
+  default = function() end,
 }
 
 local submode = require('nvim-submode')
-vim.keymap.set('n','<leader>w',function ()
+vim.keymap.set('n', '<leader>w', function()
   submode.enterSubmode(window_submode)
-end, {desc='Window Mode'})
+end, { desc = 'Window Mode' })
 
 -- config for lazygit
-local Terminal  = require('toggleterm.terminal').Terminal
-local lazygit = Terminal:new({ cmd = 'lazygit', hidden = true ,direction = 'float',dir = vim.fn.getcwd()})
+local Terminal = require('toggleterm.terminal').Terminal
+local lazygit  = Terminal:new({ cmd = 'lazygit', hidden = true, direction = 'float', dir = vim.fn.getcwd() })
 
 function _lazygit_toggle()
   lazygit:toggle()
 end
 
-
-
-
 -- config for zenn-view
-local zv = Terminal:new({ cmd = 'zenn-view', hidden = true ,direction = 'float'})
+local zv = Terminal:new({ cmd = 'zenn-view', hidden = true, direction = 'float' })
 
 function _zv_toggle()
   zv:toggle()
@@ -830,7 +828,7 @@ vim.api.nvim_create_user_command(
 )
 
 -- config for nvimff
-local nvimff = Terminal:new({ cmd = 'nvimff', hidden = true ,direction = 'float'})
+local nvimff = Terminal:new({ cmd = 'nvimff', hidden = true, direction = 'float' })
 
 local function _nvimff_toggle()
   nvimff:toggle()
@@ -843,40 +841,41 @@ vim.api.nvim_create_user_command(
 )
 
 -- remake lazygit terminal automatically if current directory is changed
-vim.api.nvim_create_augroup( 'chdirForLazygit', {} )
-vim.api.nvim_create_autocmd( {'DirChanged'}, {
+vim.api.nvim_create_augroup('chdirForLazygit', {})
+vim.api.nvim_create_autocmd({ 'DirChanged' }, {
   group = 'chdirForLazygit',
   callback = function()
-    lazygit = Terminal:new({ cmd = 'lazygit', hidden = true ,direction = 'float',dir = vim.fn.getcwd()})
+    lazygit = Terminal:new({ cmd = 'lazygit', hidden = true, direction = 'float', dir = vim.fn.getcwd() })
   end
 })
 
-vim.api.nvim_set_keymap('n', '<leader>gl', '<cmd>lua _lazygit_toggle()<CR>', {noremap = true, silent = true, desc = 'Open LazyGit'})
-vim.api.nvim_set_keymap('n', '<leader>gf', '<cmd>Flog<CR>', {noremap = true, silent = true, desc = 'Flog Graph'})
+vim.api.nvim_set_keymap('n', '<leader>gl', '<cmd>lua _lazygit_toggle()<CR>',
+  { noremap = true, silent = true, desc = 'Open LazyGit' })
+vim.api.nvim_set_keymap('n', '<leader>gf', '<cmd>Flog<CR>', { noremap = true, silent = true, desc = 'Flog Graph' })
 
-local splitterm = Terminal:new({hidden=true,direction='vertical'})
+local splitterm = Terminal:new({ hidden = true, direction = 'vertical' })
 
 function _splitterm_toggle()
   splitterm:toggle()
 end
 
-vim.api.nvim_set_keymap('n', '<C-a>', '<cmd>lua _splitterm_toggle()<CR>', {noremap = true,  desc = 'Open @terminal'})
-vim.api.nvim_set_keymap('t', '<C-a>', '<cmd>lua _splitterm_toggle()<CR>', {noremap = true,  desc = 'Close terminal'})
+vim.api.nvim_set_keymap('n', '<C-a>', '<cmd>lua _splitterm_toggle()<CR>', { noremap = true, desc = 'Open @terminal' })
+vim.api.nvim_set_keymap('t', '<C-a>', '<cmd>lua _splitterm_toggle()<CR>', { noremap = true, desc = 'Close terminal' })
 
 -- config for make terminal better
 -- set escape key to escape from terminal.
 
-vim.api.nvim_set_keymap('t','<Esc><Esc>',[[<C-\><C-n>]],{noremap=true})
-vim.api.nvim_set_keymap('n','<leader>@',':split | wincmd j |terminal<CR>i',{desc = 'Open new terminal'})
+vim.api.nvim_set_keymap('t', '<Esc><Esc>', [[<C-\><C-n>]], { noremap = true })
+vim.api.nvim_set_keymap('n', '<leader>@', ':split | wincmd j |terminal<CR>i', { desc = 'Open new terminal' })
 
 -- config for Telescope
-require('telescope').setup{
+require('telescope').setup {
   defaults = {
     -- Default configuration for telescope goes here:
     -- config_key = value,
     mappings = {
       i = {
-          -- ["<CR>"] = "select_tab"
+        -- ["<CR>"] = "select_tab"
       }
     }
   },
@@ -901,21 +900,22 @@ require('telescope').setup{
   }
 }
 local builtin = require('telescope.builtin')
-vim.keymap.set('n', '<leader>o', builtin.find_files, {desc='Open File...'})
-vim.keymap.set('n', '<Leader>f', builtin.live_grep, {desc='Grep'})
-vim.keymap.set('n', '<Leader>b', require("telescope").extensions.windows.list, {desc='Windows and Tab'})
+vim.keymap.set('n', '<leader>o', builtin.find_files, { desc = 'Open File...' })
+vim.keymap.set('n', '<Leader>f', builtin.live_grep, { desc = 'Grep' })
+vim.keymap.set('n', '<Leader>b', require("telescope").extensions.windows.list, { desc = 'Windows and Tab' })
 
 -- Diagnostics Submode
-vim.keymap.set('n','<leader>et',function ()
+vim.keymap.set('n', '<leader>et', function()
   builtin.diagnostics()
-end, {desc='Diagnostics List'})
+end, { desc = 'Diagnostics List' })
 
 ---- show diagnostic if cursor hold
 local diagnostic_hover_augroup_name = "lspconfig-diagnostic"
-vim.api.nvim_set_option_value('updatetime', 500,{})
+vim.api.nvim_set_option_value('updatetime', 500, {})
 vim.api.nvim_create_augroup(diagnostic_hover_augroup_name, { clear = true })
-vim.api.nvim_create_autocmd({ "CursorHold" }, { group = diagnostic_hover_augroup_name, callback = vim.diagnostic.open_float })
-vim.keymap.set('n','<Leader>ef',vim.diagnostic.open_float,{desc='Show diagnostic window'})
+vim.api.nvim_create_autocmd({ "CursorHold" },
+  { group = diagnostic_hover_augroup_name, callback = vim.diagnostic.open_float })
+vim.keymap.set('n', '<Leader>ef', vim.diagnostic.open_float, { desc = 'Show diagnostic window' })
 
 
 package.loaded['tinysegmenter'] = nil
@@ -927,25 +927,25 @@ tinyseg = require("tinysegmenter")
 
 -- make your own cheat sheet
 local cs1 = tcs.createCheatSheetFromSubmodeKeymap(
-  tcs.conf{
-    {"h","←"},
-    {"j","↓"},
-    {"k","↑"},
-    {"l","→"},
-    {"gg","Go to the top"},
-    {"G","Go to the bottom"},
-    {"%","Go to matching bracket"}
+  tcs.conf {
+    { "h", "←" },
+    { "j", "↓" },
+    { "k", "↑" },
+    { "l", "→" },
+    { "gg", "Go to the top" },
+    { "G", "Go to the bottom" },
+    { "%", "Go to matching bracket" }
   }
 )
 
 -- define another cheat sheet
 local cs2 = tcs.createCheatSheetFromSubmodeKeymap(
-  tcs.conf{
-    {"Ctrl + f", "Scroll forward one full screen."},
-    {"Ctrl + b", "Scroll backward one full screen."},
-    {"Ctrl + d", "Scroll down half a screen."},
-    {"Ctrl + u", "Scroll up half a screen."},
-    {"Ctrl + g", "Show the current file name and line number."}
+  tcs.conf {
+    { "Ctrl + f", "Scroll forward one full screen." },
+    { "Ctrl + b", "Scroll backward one full screen." },
+    { "Ctrl + d", "Scroll down half a screen." },
+    { "Ctrl + u", "Scroll up half a screen." },
+    { "Ctrl + g", "Show the current file name and line number." }
   }
 )
 
@@ -956,14 +956,14 @@ Ctrl+g    :現在のファイル名と行数を表示
 ]]
 
 -- assign your favorite keymap to display a cheat sheet window.
-vim.keymap.set("n","<Leader>q",function()
-    tcs.toggle(cs1)
+vim.keymap.set("n", "<Leader>q", function()
+  tcs.toggle(cs1)
 end)
-vim.keymap.set("n","<Leader>Q",function()
-    tcs.toggle(cs2)
+vim.keymap.set("n", "<Leader>Q", function()
+  tcs.toggle(cs2)
 end)
 require("nvim-lcl-lisp-runner").setup({
-  clisp_cmd = {"rlwrap","clasp"},
-  clisp_with_file_cmd = {"rlwrap","clasp","-l"}
+  clisp_cmd = { "rlwrap", "clasp" },
+  clisp_with_file_cmd = { "rlwrap", "clasp", "-l" }
 })
 require("vimuno")
