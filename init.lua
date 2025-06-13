@@ -249,6 +249,8 @@ vim.lsp.config('*', {
 -- 2. build-in LSP function
 -- keyboard shortcut
 vim.keymap.set('n', '<Leader>lh', '<cmd>lua vim.lsp.buf.hover()<CR>', { desc = 'Show more info' })
+vim.keymap.set('n', '<Leader>le', '<cmd>lua vim.diagnostic.open_float()<CR>',
+  { desc = 'Show diagnostic in floating window' })
 vim.keymap.set('n', '<Leader>lf', '<cmd>lua vim.lsp.buf.format()<CR>', { desc = 'Format' })
 vim.keymap.set('n', '<Leader>ltr', '<cmd>lua vim.lsp.buf.references()<CR>', { desc = 'References' })
 vim.keymap.set('n', '<Leader>ld', '<cmd>lua vim.lsp.buf.definition()<CR>', { desc = 'Definitions' })
@@ -280,12 +282,16 @@ local on_attach = function(client, bufnr)
   require('mason-lspconfig').on_attach(client, bufnr)
 end
 -- make sign fancy
-vim.cmd [[
-  sign define DiagnosticSignError text= texthl=DiagnosticSignError linehl= numhl=
-  sign define DiagnosticSignWarn text= texthl=DiagnosticSignWarn linehl= numhl=
-  sign define DiagnosticSignInfo text= texthl=DiagnosticSignInfo linehl= numhl=
-  sign define DiagnosticSignHint text= texthl=DiagnosticSignHint linehl= numhl=
-]]
+vim.diagnostic.config({
+  signs = {
+    text = {
+      [vim.diagnostic.severity.ERROR] = "",
+      [vim.diagnostic.severity.WARN] = "",
+      [vim.diagnostic.severity.INFO] = "",
+      [vim.diagnostic.severity.HINT] = "",
+    },
+  },
+})
 -- 3. completion (hrsh7th/nvim-cmp)
 local cmp = require('cmp')
 cmp.setup({
@@ -816,7 +822,7 @@ end
 -- config for zenn-view
 local zv = Terminal:new({ cmd = 'zenn-view', hidden = true, direction = 'float' })
 
-function _zv_toggle()
+local function _zv_toggle()
   zv:toggle()
 end
 
@@ -849,8 +855,9 @@ vim.api.nvim_create_autocmd({ 'DirChanged' }, {
   end
 })
 
-vim.api.nvim_set_keymap('n', '<leader>gl', '<cmd>lua _lazygit_toggle()<CR>',
-  { noremap = true, silent = true, desc = 'Open LazyGit' })
+vim.keymap.set('n', '<leader>gl', function()
+  _lazygit_toggle()
+end, { noremap = true, silent = true, desc = 'Open LazyGit' })
 vim.api.nvim_set_keymap('n', '<leader>gf', '<cmd>Flog<CR>', { noremap = true, silent = true, desc = 'Flog Graph' })
 
 local splitterm = Terminal:new({ hidden = true, direction = 'vertical' })
@@ -914,8 +921,7 @@ local diagnostic_hover_augroup_name = "lspconfig-diagnostic"
 vim.api.nvim_set_option_value('updatetime', 500, {})
 vim.api.nvim_create_augroup(diagnostic_hover_augroup_name, { clear = true })
 vim.api.nvim_create_autocmd({ "CursorHold" },
-  { group = diagnostic_hover_augroup_name, callback = vim.diagnostic.open_float })
-vim.keymap.set('n', '<Leader>ef', vim.diagnostic.open_float, { desc = 'Show diagnostic window' })
+  { group = diagnostic_hover_augroup_name, command = "lua vim.diagnostic.open_float()" })
 
 
 package.loaded['tinysegmenter'] = nil
