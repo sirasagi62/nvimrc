@@ -7,7 +7,7 @@
 -- Depends on lazygit,ripgrep,git-graph commands
 
 -- config for Japanese encodings
-local vim = vim
+
 
 
 -- customize key mappings and some extra helpful configs!
@@ -37,18 +37,29 @@ vim.opt.smarttab = true
 vim.opt.autoindent = true
 vim.opt.smartindent = true
 
+vim.opt.iskeyword:append "-"
+
+
 -- set norelativenumber in insert mode, otherwise relativenumber
 vim.opt.number = true
 
 vim.api.nvim_create_augroup('numbertoggle', {})
 vim.api.nvim_create_autocmd({ 'BufEnter', 'InsertLeave' }, {
   group = 'numbertoggle',
-  callback = function() vim.opt.relativenumber = true end
+  callback = function()
+    if vim.bo.buftype == '' then
+      vim.opt.relativenumber = true
+    end
+  end
 })
 
 vim.api.nvim_create_autocmd({ 'BufLeave', 'InsertEnter' }, {
   group = 'numbertoggle',
-  callback = function() vim.opt.relativenumber = false end
+  callback = function()
+    if vim.bo.buftype == '' then
+      vim.opt.relativenumber = false
+    end
+  end
 })
 
 -- Automatic vim-jetpack install
@@ -71,22 +82,35 @@ require('jetpack.packer').add {
   -- status line plugins
   { 'nvim-lualine/lualine.nvim' },
   { 'nvim-tree/nvim-web-devicons' },
+  { 'nvim-mini/mini.tabline',
+    config = function()
+      require("mini.tabline").setup()
+    end
+  },
 
   -- make gutter fancy
   { 'folke/trouble.nvim' },
 
   -- plugins for moving cursor
   { 'terryma/vim-expand-region' },
-  { 'phaazon/hop.nvim' },
+  { 'smoka7/hop.nvim' },
 
   -- plugins for text editing
   { 'kylechui/nvim-surround' },              -- re-implamantation of vim-surround by tpope in neovim with lua
   { 'lukas-reineke/indent-blankline.nvim' }, -- show indent
   { 'cohama/lexima.vim' },
   { 'tpope/vim-commentary' },                -- comment toggle
-  { 'nmac427/guess-indent.nvim' },           -- insert indent wisely
+  { 'nmac427/guess-indent.nvim', config = function()
+    require('guess-indent').setup {}
+  end }, -- insert indent wisely
+
+  -- text objects(textobj)
+
+  { 'wellle/targets.vim' },
   { 'kana/vim-textobj-user' },
   { 'kana/vim-textobj-line' },
+  { 'kana/vim-textobj-entire' },
+  { 'nvim-treesitter/nvim-treesitter-textobjects' },
   { 'ntpeters/vim-better-whitespace' }, -- trailing space by cmd
 
   -- plugins for git
@@ -124,6 +148,15 @@ require('jetpack.packer').add {
         },
         highlight = {
           enable = true
+        },
+        textobjects = {
+          select = {
+            enable = true,
+            keymaps = {
+              ["af"] = "@function.outer",
+              ["if"] = "@function.inner",
+            }
+          }
         }
       })
     end
@@ -145,17 +178,64 @@ require('jetpack.packer').add {
   { 'hrsh7th/vim-vsnip' },
 
   -- plugins for diagnostics, formatting, etc...
-  { 'mhartington/formatter.nvim' },
-  { 'mfussenegger/nvim-lint' },
+  --{ 'mhartington/formatter.nvim' },
+  --{ 'mfussenegger/nvim-lint' },
+  {
+    "rachartier/tiny-inline-diagnostic.nvim",
+    config = function()
+      require('tiny-inline-diagnostic').setup({
+        options = {
+          show_source = {
+            enabled = true,
+            -- Show source only when multiple sources exist for the same diagnostic
+            if_many = true,
+          },
+          use_icons_from_diagnostic = true,
+        }
+      })
+      vim.diagnostic.config({ virtual_text = false }) -- Disable default virtual text
+    end
+  },
+  { 'nvimdev/lspsaga.nvim',
+    config = function()
+      require('lspsaga').setup({
+        ui = {
+          code_action = ''
+        },
+        lightbulb = {
+          enable = true,
+          sign = false,
+          virtual_text = true,
+        },
+      })
+    end
+  },
+  { 'dnlhc/glance.nvim',
+    config = function()
+      require('glance').setup()
+    end
+  },
+
 
   -- for golang
-  { 'fatih/vim-go',                     ft = 'go' },
+  { 'fatih/vim-go',          ft = 'go' },
 
   -- for zig
-  { 'ziglang/zig.vim' },
+  { 'ziglang/zig.vim',       ft = 'zig' },
 
   -- for web
   { 'windwp/nvim-ts-autotag' },
+
+  -- for typescript
+  {
+    "pmizio/typescript-tools.nvim",
+    requires = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
+    config = function()
+      require("typescript-tools").setup({
+        capabilities = require('cmp_nvim_lsp').default_capabilities(),
+      })
+    end
+  },
 
   -- fuzzy finder
   {
@@ -169,11 +249,16 @@ require('jetpack.packer').add {
 
   -- filer
   { 'lambdalisue/fern.vim' },
-  { 'stevearc/oil.nvim' },
+  { 'stevearc/oil.nvim',
+    config = function()
+      require("oil").setup()
+    end
+  },
 
   -- other plugins to help my neovim life!
-  -- show floating window which gives key mapping hint
-  { 'linty-org/key-menu.nvim' },
+  -- show key mapping hint on a floating window near the cursor
+  -- { 'linty-org/key-menu.nvim' },
+  { 'emmanueltouzery/key-menu.nvim' },
 
   -- automatically resize focused window
   { 'anuvyklack/windows.nvim',
@@ -192,12 +277,26 @@ require('jetpack.packer').add {
   { 'metakirby5/codi.vim' },
   -- make swap file better
   { 'chrisbra/Recover.vim' },
+  --{ 'tokinasin/reversi.vim' },
+  { 'tokinasin/reversi-nn.vim' },
   -- for development
   { '~/project/nvim-submode' },
   { 'sirasagi62/nvim-lcl-lisp-runner' },
   { 'sirasagi62/toggle-cheatsheet.nvim' },
   { 'sirasagi62/tinysegmenter.nvim' },
-  { '~/project/vimuno' }
+  { 'sirasagi62/chopgrep.nvim',
+    requires = {
+      'MunifTanjim/nui.nvim',
+      'grapp-dev/nui-components.nvim'
+    }
+  },
+  { '~/project/vimuno' },
+  { '~/project/lingua-nvim' },
+  { 'grapp-dev/nui-components.nvim',
+    requires = 'MunifTanjim/nui.nvim'
+  },
+
+
 }
 
 -- setting for colorscheme
@@ -209,13 +308,11 @@ require('nvim-highlight-colors').setup {}
 -- before customize plugins configs
 
 
-
 -- popup key-mapping hint with leader key
 require 'key-menu'.set('n', '<Leader>')
 require 'key-menu'.set('n', '<Leader>g', { desc = 'Git' })
 require 'key-menu'.set('n', '<Leader>l', { desc = 'LSP' })
-require 'key-menu'.set('n', '<Leader>lt', { desc = 'Go to' })
-require 'key-menu'.set('n', '<Leader>t', { desc = 'Telescope' })
+require 'key-menu'.set('n', '<Leader>t', { desc = 'Go to' })
 
 -- settings for vim-expand-region
 vim.keymap.set('v', 'v', '<Plug>(expand_region_expand)')
@@ -224,13 +321,14 @@ vim.cmd([[
 let g:expand_region_text_objects = {
       \ 'iw'  :0,
       \ 'iW'  :0,
-      \ 'i"'  :1,
-      \ 'i''' :1,
-      \ 'i]'  :1,
-      \ 'ib'  :1,
-      \ 'iB'  :1,
+      \ 'i"'  :0,
+      \ 'i''' :0,
+      \ 'ia'  :0,
+      \ 'i)'  :1,
       \ 'il'  :1,
-      \ 'ip'  :0,
+      \ 'if'  :1,
+      \ 'af'  :1,
+      \ 'it'  :1,
       \ 'ie'  :0,
       \ }
 ]])
@@ -248,39 +346,21 @@ vim.lsp.config('*', {
 
 -- 2. build-in LSP function
 -- keyboard shortcut
-vim.keymap.set('n', '<Leader>lh', '<cmd>lua vim.lsp.buf.hover()<CR>', { desc = 'Show more info' })
-vim.keymap.set('n', '<Leader>le', '<cmd>lua vim.diagnostic.open_float()<CR>',
+vim.keymap.set('n', '<Leader>lh', function() vim.lsp.buf.hover({ border = "single" }) end, { desc = 'Show more info' })
+vim.keymap.set('n', '<Leader>le', function() vim.diagnostic.open_float() end,
   { desc = 'Show diagnostic in floating window' })
-vim.keymap.set('n', '<Leader>lf', '<cmd>lua vim.lsp.buf.format()<CR>', { desc = 'Format' })
-vim.keymap.set('n', '<Leader>ltr', '<cmd>lua vim.lsp.buf.references()<CR>', { desc = 'References' })
-vim.keymap.set('n', '<Leader>ld', '<cmd>lua vim.lsp.buf.definition()<CR>', { desc = 'Definitions' })
-vim.keymap.set('n', '<Leader>ltD', '<cmd>lua vim.lsp.buf.declaration()<CR>', { desc = 'Declarations' })
-vim.keymap.set('n', '<Leader>lti', '<cmd>lua vim.lsp.buf.implementation()<CR>', { desc = 'Implemantations' })
-vim.keymap.set('n', '<Leader>ltt', '<cmd>lua vim.lsp.buf.type_definition()<CR>', { desc = 'Type defs...' })
-vim.keymap.set('n', '<F2>', '<cmd>lua vim.lsp.buf.rename()<CR>')
-vim.keymap.set('n', '<Leader>la', '<cmd>lua vim.lsp.buf.code_action()<CR>', { desc = 'Actions..' })
-vim.keymap.set('n', 'e', '<cmd>lua vim.diagnostic.goto_next()<CR>', { desc = 'Next diag..' })
-vim.keymap.set('n', 'E', '<cmd>lua vim.diagnostic.goto_prev()<CR>', { desc = 'Prev diag..' })
--- LSP handlers
-vim.lsp.handlers['textDocument/publishDiagnostics'] = vim.lsp.with(
-  vim.lsp.diagnostic.on_publish_diagnostics, { virtual_text = false }
-)
--- Reference highlight
-local on_attach = function(client, bufnr)
-  if client.server_capabilities.documentHighlightProvider then
-    vim.api.nvim_exec(
-      [[
-            augroup lsp_document_highlight
-              autocmd! * <buffer>
-              autocmd CursorHold,CursorHoldI <buffer> lua vim.lsp.buf.document_highlight()
-              autocmd CursorMoved,CursorMovedI <buffer> lua vim.lsp.buf.clear_references()
-            augroup END
-            ]],
-      false
-    )
-  end
-  require('mason-lspconfig').on_attach(client, bufnr)
-end
+vim.keymap.set('n', '<Leader>lf', function() vim.lsp.buf.format() end, { desc = 'Format' })
+vim.keymap.set('n', '<Leader>lo', "<cmd>Lspsaga outline<CR>", { desc = 'Outline' })
+vim.keymap.set('n', '<Leader>tr', "<cmd>Glance references<CR>", { desc = 'References' })
+vim.keymap.set('n', '<Leader>ld', "<cmd>Glance definitions<CR>", { desc = 'Definitions' })
+vim.keymap.set('n', '<Leader>tD', function() vim.lsp.buf.declaration() end, { desc = 'Declarations' })
+vim.keymap.set('n', '<Leader>ti', "<cmd>Glance implementations<CR>", { desc = 'Implementations' })
+vim.keymap.set('n', '<Leader>tt', "<cmd>Glance type_definitions<CR>", { desc = 'Type defs...' })
+vim.keymap.set('n', '<F2>', "<cmd>Lspsaga rename<CR>")
+vim.keymap.set('n', '<Leader>la', "<cmd>Lspsaga code_action<CR>", { desc = 'Actions..' })
+vim.keymap.set('n', '<Leader>te', "<cmd>Lspsaga diagnostic_jump_next<CR>", { desc = 'Next diag..' })
+vim.keymap.set('n', '<Leader>tE', "<cmd>Lspsaga diagnostic_jump_prev<CR>", { desc = 'Prev diag..' })
+
 -- make sign fancy
 vim.diagnostic.config({
   signs = {
@@ -332,7 +412,7 @@ local capabilities = require('cmp_nvim_lsp').default_capabilities()
 
 -- Replace <YOUR_LSP_SERVER> with each lsp server you've enabled.
 -- For Golang
-require('lspconfig')['gopls'].setup {
+vim.lsp.config['gopls'] = {
   capabilities = capabilities
 }
 
@@ -340,6 +420,10 @@ require('lspconfig')['gopls'].setup {
 vim.lsp.config['html'] = {
   filetypes = { 'html', 'templ' }
 }
+
+-- vim.lsp.config['ts_ls'] = {
+--   capabilities = capabilities
+-- }
 require('nvim-ts-autotag').setup()
 
 -- For LuaLS
@@ -382,7 +466,7 @@ local function library(plugins, myplugins)
   return paths
 end
 
-require("lspconfig").lua_ls.setup({
+vim.lsp.config["lua_ls"] = {
   settings = {
     Lua = {
       runtime = {
@@ -396,7 +480,7 @@ require("lspconfig").lua_ls.setup({
       },
     },
   },
-})
+}
 
 -- ** Enable LSPs **
 require("mason-lspconfig").setup {
@@ -412,13 +496,13 @@ require("mason-lspconfig").setup {
     "golangci_lint_ls",
     "gopls",
     "html",
-    "htmx",
+    --"htmx",
     "lua_ls",
     --"prettier",
     --"stylua",
     "tailwindcss",
     "templ",
-    "ts_ls",
+    -- "ts_ls",
     "marksman",
     "nimls",
     "pylsp",
@@ -448,18 +532,15 @@ vim.keymap.set('n', '<leader>z+', 'za', { desc = 'Toggle fold' })
 -- Option 2: nvim lsp as LSP client
 -- Tell the server the capability of foldingRange,
 -- Neovim hasn't added foldingRange to default capabilities, users must add it manually
-local capabilities = vim.lsp.protocol.make_client_capabilities()
 capabilities.textDocument.foldingRange = {
   dynamicRegistration = false,
   lineFoldingOnly = true
 }
-local language_servers = require("lspconfig").util.available_servers() -- or list servers manually like {'gopls', 'clangd'}
-for _, ls in ipairs(language_servers) do
-  require('lspconfig')[ls].setup({
-    capabilities = capabilities
-    -- you can add other fields for setting up lsp server in this table
-  })
-end
+
+vim.lsp.config('*', {
+  capabilities = require('cmp_nvim_lsp').default_capabilities(),
+})
+
 require('ufo').setup()
 
 -- First, load your favorite colorshceme
@@ -909,19 +990,13 @@ require('telescope').setup {
 local builtin = require('telescope.builtin')
 vim.keymap.set('n', '<leader>o', builtin.find_files, { desc = 'Open File...' })
 vim.keymap.set('n', '<Leader>f', builtin.live_grep, { desc = 'Grep' })
-vim.keymap.set('n', '<Leader>b', require("telescope").extensions.windows.list, { desc = 'Windows and Tab' })
+vim.keymap.set('n', '<Leader>W', require("telescope").extensions.windows.list, { desc = 'Windows and Tab' })
+vim.keymap.set('n', '<Leader>b', builtin.buffers, { desc = 'Buffers' })
 
 -- Diagnostics Submode
-vim.keymap.set('n', '<leader>et', function()
+vim.keymap.set('n', '<leader>e', function()
   builtin.diagnostics()
 end, { desc = 'Diagnostics List' })
-
----- show diagnostic if cursor hold
-local diagnostic_hover_augroup_name = "lspconfig-diagnostic"
-vim.api.nvim_set_option_value('updatetime', 500, {})
-vim.api.nvim_create_augroup(diagnostic_hover_augroup_name, { clear = true })
-vim.api.nvim_create_autocmd({ "CursorHold" },
-  { group = diagnostic_hover_augroup_name, command = "lua vim.diagnostic.open_float()" })
 
 
 package.loaded['tinysegmenter'] = nil
@@ -973,3 +1048,5 @@ require("nvim-lcl-lisp-runner").setup({
   clisp_with_file_cmd = { "rlwrap", "clasp", "-l" }
 })
 require("vimuno")
+require("chopgrep")
+require("lingua-nvim")
