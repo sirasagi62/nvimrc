@@ -62,6 +62,9 @@ vim.api.nvim_create_autocmd({ 'BufLeave', 'InsertEnter' }, {
   end
 })
 
+is_fern_enable = nil
+fern_statusline_color = nil
+
 -- Automatic vim-jetpack install
 local jetpackfile = vim.fn.stdpath('data') .. '/site/pack/jetpack/opt/vim-jetpack/plugin/jetpack.vim'
 local jetpackpluginfolder = vim.fn.stdpath('data') .. '/site/pack/jetpack/opt/vim-jetpack/plugin/'
@@ -83,8 +86,13 @@ require('jetpack.packer').add {
   { 'nvim-lualine/lualine.nvim' },
   { 'nvim-tree/nvim-web-devicons' },
   { 'nvim-mini/mini.tabline',
+    requires = {
+      'nvim-mini/mini.icons'
+    },
     config = function()
-      require("mini.tabline").setup()
+      require("mini.tabline").setup({
+        show_icons = true
+      })
     end
   },
 
@@ -117,6 +125,11 @@ require('jetpack.packer').add {
   { 'tpope/vim-fugitive' },
   { 'rbong/vim-flog' },
   { 'rhysd/git-messenger.vim' },
+  { 'nvim-mini/mini.diff',
+    config = function()
+      require('mini.diff').setup()
+    end
+  },
 
   -- make terminal better
   { 'akinsho/toggleterm.nvim',
@@ -218,23 +231,19 @@ require('jetpack.packer').add {
 
 
   -- for golang
-  { 'fatih/vim-go',          ft = 'go' },
+  { 'fatih/vim-go',            ft = 'go' },
 
   -- for zig
-  { 'ziglang/zig.vim',       ft = 'zig' },
+  { 'ziglang/zig.vim',         ft = 'zig' },
 
   -- for web
   { 'windwp/nvim-ts-autotag' },
+  { 'napmn/react-extract.nvim' },
 
   -- for typescript
   {
     "pmizio/typescript-tools.nvim",
     requires = { "nvim-lua/plenary.nvim", "neovim/nvim-lspconfig" },
-    config = function()
-      require("typescript-tools").setup({
-        capabilities = require('cmp_nvim_lsp').default_capabilities(),
-      })
-    end
   },
 
   -- fuzzy finder
@@ -248,10 +257,206 @@ require('jetpack.packer').add {
   { 'kyoh86/telescope-windows.nvim' },
 
   -- filer
-  { 'lambdalisue/fern.vim' },
+  { 'lambdalisue/fern.vim',
+    requires = {
+      { 'lambdalisue/vim-glyph-palette' },
+      { 'TheLeoP/fern-renderer-web-devicons.nvim' },
+      { 'lambdalisue/vim-fern-git-status' },
+      { 'sirasagi62/toggle-cheatsheet.nvim' },
+      { 'yuki-yano/fern-preview.vim' }
+    },
+    config = function()
+      local colors = require('tokyonight.colors').setup()
+
+      vim.g['fern#renderer'] = 'nvim-web-devicons'
+      vim.g["glyph_palette#palette"] = require 'fr-web-icons'.palette()
+      vim.g['fern#hide_cursor'] = true
+      vim.g['fern#default_hidden'] = true
+      vim.g['should_reload_fern'] = false
+
+
+
+      vim.keymap.set("n", ">", "<C-W>l")
+      vim.keymap.set("n", "<", "<C-W>h")
+
+      local vimL_func_definition = [[
+        " VimlL関数を定義
+        " return の結果をLua側で受け取る
+        function! GetFernCursorPathInline() abort
+          let helper = fern#helper#new()
+          let node = helper.sync.get_cursor_node()
+          return node
+        endfunction
+      ]]
+      vim.api.nvim_exec2(vimL_func_definition, {
+        output = false
+      })
+      -- autocmd to enter fern
+      vim.api.nvim_create_autocmd('FileType', {
+        pattern = 'fern',
+        callback = function(args)
+          vim.fn['glyph_palette#apply']()
+          vim.opt_local.relativenumber = false
+          vim.opt_local.number = false
+          vim.opt_local.signcolumn = 'no'
+          vim.opt_local.foldcolumn = "0"
+          -- 別のバッファに切り替えない
+          vim.opt_local.winfixbuf = true
+          local toggle_help = function()
+            local tcs = require('toggle-cheatsheet').setup(true)
+            local raw_help = vim.fn['fern#action#list']()
+            local help = {}
+            for _, h in ipairs(raw_help) do
+              if type(h[1]) == "string" and h[1] ~= "" and h[1]:match("<Plug>") == nil then
+                table.insert(help, h)
+              end
+            end
+            local cs = tcs.createCheatSheetFromSubmodeKeymap(
+              tcs.conf(help)
+            )
+            tcs.toggle(cs)
+          end
+          vim.keymap.set('n', 'p', '<Plug>(fern-action-preview:auto:toggle)', { buffer = true })
+          vim.keymap.set('n', '??', toggle_help, { buffer = true, remap = true })
+          vim.keymap.set('n', 'l', '<Plug>(fern-action-open-or-expand)', { buffer = true })
+          vim.keymap.set('n', '<Enter>', '<Plug>(fern-action-open-or-expand)', { buffer = true })
+          vim.keymap.set('n', '<left>', '<Plug>(fern-action-collapse)', { buffer = true })
+          vim.keymap.set('n', '<right>', '<Plug>(fern-action-open-or-expand)', { buffer = true })
+          vim.keymap.set('n', 'O', function()
+            local cursor_path = vim.fn["GetFernCursorPathInline"]()["_path"]
+            cursor_path = vim.fs.dirname(vim.fn.fnamemodify(cursor_path, ':p'))
+            vim.g['should_reload_fern'] = true
+            vim.cmd([[Oil --float ]] .. cursor_path)
+          end, { buffer = true })
+        end
+      })
+      vim.api.nvim_create_augroup('FernMyConf', {})
+
+      local ns = vim.api.nvim_create_namespace("fern-colors")
+      local dark_colors = {
+        blue = "#6180d5",
+        blue_dark = "#3d517d",
+        fg = colors.fg_dark,
+        bg = "#141621"
+      }
+      local light_colors = {
+        bg = "#212640",
+        blue = "#9ebbf7"
+      }
+      vim.api.nvim_create_autocmd('BufEnter', {
+        group = 'FernMyConf',
+        callback = function(args)
+          if vim.bo.filetype == "fern" then
+            vim.api.nvim_win_set_hl_ns(0, ns)
+            vim.api.nvim_set_hl(ns, 'FernRootSymbol', { fg = colors.yellow })
+            vim.api.nvim_set_hl(ns, 'FernRootText', { fg = colors.yellow })
+            vim.api.nvim_set_hl(ns, 'FernBranchSymbol', { link = 'Directory' })
+            vim.api.nvim_set_hl(ns, 'FernBranchText', { link = 'Directory' })
+            vim.api.nvim_set_hl(ns, 'FernLeafText', { fg = colors.fg })
+            vim.api.nvim_set_hl(ns, 'Normal', {
+              bg = light_colors.bg,
+            })
+            vim.api.nvim_set_hl(ns, 'EndOfBuffer', {
+              bg = light_colors.bg,
+              fg = light_colors.bg
+            })
+            vim.api.nvim_set_hl(ns, 'CursorLine', {
+              fg = colors.fg,
+              -- bg = colors.blue,
+              bg = dark_colors.blue_dark,
+            })
+            is_fern_enable = "NORMAL(VIM-FERN)"
+            fern_statusline_color = light_colors.blue
+            require("lualine").refresh()
+            if vim.g["should_reload_fern"] then
+              vim.g["should_reload_fern"] = false
+              vim.api.nvim_input("<F5>")
+            end
+          end
+        end
+      })
+      vim.api.nvim_create_autocmd('BufLeave', {
+        group = 'FernMyConf',
+        callback = function(args)
+          if vim.bo.filetype == "fern" then
+            vim.api.nvim_set_hl(ns, 'FernRootSymbol', { fg = colors.fg_dark })
+            vim.api.nvim_set_hl(ns, 'FernRootText', { fg = colors.fg_dark })
+            vim.api.nvim_set_hl(ns, 'FernBranchSymbol', { fg = dark_colors.blue })
+            vim.api.nvim_set_hl(ns, 'FernBranchText', { fg = dark_colors.blue })
+            vim.api.nvim_set_hl(ns, 'FernLeafText', { fg = dark_colors.fg })
+            vim.api.nvim_win_set_hl_ns(0, ns)
+            vim.api.nvim_set_hl(ns, 'Normal', {
+              bg = dark_colors.bg,
+            })
+            vim.api.nvim_set_hl(ns, 'EndOfBuffer', {
+              bg = dark_colors.bg,
+              fg = dark_colors.bg
+            })
+            vim.api.nvim_set_hl(ns, 'CursorLine', {
+              bg = colors.comment,
+              fg = colors.fg
+            })
+            is_fern_enable = nil
+            fern_statusline_color = nil
+            require("lualine").refresh()
+            require("toggle-cheatsheet").closeCheatSheetWin()
+          end
+        end
+      })
+
+      vim.api.nvim_create_autocmd('BufRead', {
+        group = 'FernMyConf',
+        nested = true,
+        callback = function()
+          if vim.bo.filetype ~= "fern" and vim.bo.buftype == "" then
+            vim.cmd [[Fern . -reveal=% -drawer -stay]]
+          end
+        end
+      })
+
+      vim.api.nvim_create_autocmd('User', {
+        group = 'FernMyConf',
+        pattern = "FernHighlight",
+        callback = function()
+          vim.api.nvim_win_set_hl_ns(0, ns)
+          vim.api.nvim_set_hl(ns, 'CursorLine', {
+            fg = colors.fg,
+            -- bg = colors.blue,
+            bg = dark_colors.blue_dark,
+          })
+          vim.api.nvim_set_hl(ns, 'FernBranchSymbol', { link = 'Directory' })
+          vim.api.nvim_set_hl(ns, 'FernBranchText', { link = 'Directory' })
+          vim.api.nvim_set_hl(ns, 'FernRootSymbol', { fg = colors.fg_dark })
+          vim.api.nvim_set_hl(ns, 'FernRootText', { fg = colors.fg_dark })
+        end
+      })
+
+      vim.api.nvim_create_autocmd('VimEnter', {
+        group = 'FernMyConf',
+        nested = true,
+        callback = function(args)
+          if vim.fn.argc() > 0 then
+            vim.cmd [[Fern . -reveal=% -drawer -toggle -stay]]
+          else
+            vim.cmd [[Fern . -reveal=% -drawer -toggle]]
+          end
+        end
+      })
+    end
+  },
+
   { 'stevearc/oil.nvim',
     config = function()
-      require("oil").setup()
+      require("oil").setup({
+        float = {
+          max_height = 0.6,
+          max_width = 0.6,
+          border = "rounded",
+        },
+        keymaps = {
+          ["q"] = ":q<CR>"
+        },
+      })
     end
   },
 
@@ -260,6 +465,23 @@ require('jetpack.packer').add {
   -- { 'linty-org/key-menu.nvim' },
   { 'emmanueltouzery/key-menu.nvim' },
 
+  -- make notify fancy
+  { 'rcarriga/nvim-notify',
+    config = function()
+      vim.notify = require('notify')
+    end
+  },
+
+  -- make markdown fancy
+  { 'MeanderingProgrammer/render-markdown.nvim',
+    requires = {
+      'https://github.com/nvim-treesitter/nvim-treesitter',
+      'https://github.com/nvim-tree/nvim-web-devicons'
+    },
+    config = function()
+      require('render-markdown').setup({})
+    end
+  },
   -- automatically resize focused window
   { 'anuvyklack/windows.nvim',
     requires = 'anuvyklack/middleclass'
@@ -275,12 +497,21 @@ require('jetpack.packer').add {
   { 'is0n/jaq-nvim' },
   -- scratchpad
   { 'metakirby5/codi.vim' },
+  -- Convert markdown to vimdoc
+  { 'OXY2DEV/markdoc.nvim' },
+  --key logs for recording video
+  { '4513ECHO/nvim-keycastr' },
   -- make swap file better
   { 'chrisbra/Recover.vim' },
-  --{ 'tokinasin/reversi.vim' },
-  { 'tokinasin/reversi-nn.vim' },
+  -- kazhala/close-buffers.nvim
+  { 'kazhala/close-buffers.nvim' },
+
+  { 'tokinasin/reversi.vim' },
+  -- testing
+  { 'thinca/vim-themis' },
   -- for development
-  { '~/project/nvim-submode' },
+  -- { '~/project/submode' },
+  { 'sirasagi62/nvim-submode' },
   { 'sirasagi62/nvim-lcl-lisp-runner' },
   { 'sirasagi62/toggle-cheatsheet.nvim' },
   { 'sirasagi62/tinysegmenter.nvim' },
@@ -292,13 +523,13 @@ require('jetpack.packer').add {
   },
   { '~/project/vimuno' },
   { '~/project/lingua-nvim' },
+  { 'sirasagi62/flf-vim' },
   { 'grapp-dev/nui-components.nvim',
     requires = 'MunifTanjim/nui.nvim'
   },
 
 
 }
-
 -- setting for colorscheme
 vim.opt.cursorline = true -- show cursorline
 vim.cmd [[colorscheme tokyonight]]
@@ -346,7 +577,8 @@ vim.lsp.config('*', {
 
 -- 2. build-in LSP function
 -- keyboard shortcut
-vim.keymap.set('n', '<Leader>lh', function() vim.lsp.buf.hover({ border = "single" }) end, { desc = 'Show more info' })
+-- vim.keymap.set('n', '<Leader>lh', function() vim.lsp.buf.hover({ border = "single" }) end, { desc = 'Show more info' })
+vim.keymap.set('n', '<Leader>lh', "<cmd>Lspsaga hover_doc<CR>", { desc = 'Show more info' })
 vim.keymap.set('n', '<Leader>le', function() vim.diagnostic.open_float() end,
   { desc = 'Show diagnostic in floating window' })
 vim.keymap.set('n', '<Leader>lf', function() vim.lsp.buf.format() end, { desc = 'Format' })
@@ -426,6 +658,51 @@ vim.lsp.config['html'] = {
 -- }
 require('nvim-ts-autotag').setup()
 
+
+-- For typescript
+
+-- detect the project is node/bun or deno
+local find_deno_files_dirs = function(path)
+  local found_dirs = vim.fs.find({
+    'deno.json',
+    'deno.jsonc',
+    'deps.ts',
+  }, {
+    upward = true,
+    path = path
+  })
+  return found_dirs
+end
+
+-- if not deno, enable ts-tools
+local dirs = find_deno_files_dirs(vim.env.PWD)
+if #dirs == 0 then
+  require("typescript-tools").setup({
+    capabilities = require('cmp_nvim_lsp').default_capabilities(),
+  })
+end
+
+vim.lsp.config['denols'] = {
+  root_dir = function(bufnr, callback)
+    local found_dirs = find_deno_files_dirs(vim.fs.dirname(vim.fs.normalize(vim.api.nvim_buf_get_name(bufnr))))
+    if #found_dirs > 0 then
+      return callback(vim.fs.dirname(found_dirs[1]))
+    end
+  end,
+  init_options = {
+    lint = true,
+    unstable = true,
+    suggest = {
+      imports = {
+        hosts = {
+          ["https://deno.land"] = true,
+          ["https://cdn.nest.land"] = true,
+          ["https://crux.land"] = true,
+        },
+      },
+    },
+  },
+}
 -- For LuaLS
 
 ---@param names string[]
@@ -475,7 +752,7 @@ vim.lsp.config["lua_ls"] = {
         path = { "?.lua", "?/init.lua" },
       },
       workspace = {
-        library = library({ 'nvim-cmp' }, { "toggle-cheatsheet.nvim" }),
+        library = library({ 'nvim-cmp', 'nvim-submode' }, { "toggle-cheatsheet.nvim", "nvim-submode" }),
         checkThirdParty = "Disable",
       },
     },
@@ -500,6 +777,7 @@ require("mason-lspconfig").setup {
     "lua_ls",
     --"prettier",
     --"stylua",
+    "denols",
     "tailwindcss",
     "templ",
     -- "ts_ls",
@@ -547,15 +825,6 @@ require('ufo').setup()
 local colors = require('tokyonight.colors').setup()
 local get_mode = require('lualine.utils.mode').get_mode
 
-local hydra_color = {
-  Git = colors.orange,
-  Window = colors.red,
-}
-local active_hydra = {
-  name = nil,
-  color = nil,
-}
-
 -- setting for vim-commentary
 vim.keymap.set('n', '<C-/>', 'gcc', { desc = 'Toggle comment' })
 
@@ -573,11 +842,11 @@ package.loaded['nvim-submode'] = nil
 local sm = require('nvim-submode')
 
 local function submodeNameLualine()
-  return sm.getState().submode_display_name or get_mode()
+  return sm.get_submode_name() or is_fern_enable or get_mode()
 end
 
 local function submodeNameLualineWithBaseMode()
-  local submode = sm.getState().submode_display_name
+  local submode = sm.get_submode_name()
   if submode then
     return submode .. '(' .. get_mode() .. ')'
   else
@@ -586,13 +855,17 @@ local function submodeNameLualineWithBaseMode()
 end
 
 local function submodeLualineBGColor()
-  local color = sm.getState().submode_color
-  return color and { bg = color } or nil
+  local color = sm.get_submode_color()
+  return color and
+      { bg = color } or
+      fern_statusline_color and
+      { bg = fern_statusline_color } or
+      nil
 end
 
 local function submodeLualineFGColor()
-  local color = sm.getState().submode_color
-  return color and { fg = color } or nil
+  local color = sm.get_submode_color()
+  return color and { fg = color } or fern_statusline_color and { bg = fern_statusline_color, } or nil
 end
 
 
@@ -635,7 +908,7 @@ local progress_with_submode = {
 local branch_with_submode = {
   {
     'branch',
-    icon = { '', color = submodeLualineFGColor },
+    icon = { '' },
     color = submodeLualineFGColor
   }
 
@@ -662,61 +935,151 @@ lualine.setup {
   }
 }
 
-local testmode = {
-  -- enable to print debug information
-  debug = true,
-  -- set duration to wait key input
-  --timeoutlen = 1000,
+vim.keymap.set('n', ';', function()
+  vim.notify("; is disable")
+end)
+vim.keymap.set('n', ',', function()
+  vim.notify(", is disable")
+end)
 
-  -- set minimum duration between each loop
-  -- in order to execute vim functions by proper order.
-  -- you should change this property unless you know what you are doing.
-  min_cycle_duration = 0,
 
-  lualine = true,
-  -- you can set any key except <Esc> as interrupt_key to interrupt waiting key input
-  interrupt_key = '<CR>',
-  -- mode name that set inner
-  mode_name = 'test',
-  mode_color = colors.orange,
-  -- if true, submode collect input numbers to number_list
-  number_input = true,
-  -- if true, submode automatically repeat keymap action number_list[1] times
-  number_modify = true,
-  mode_display_name = ' TEST ',
-  keymaps = {
+local smart_f_keymap = {
+  {
+    'f<any>',
+    function(_, keys, anys)
+      print("f<any>")
+      --
+      return sm.replace_any(keys, anys), nil
+    end,
     {
-      map = '<C-H><C-W>',
-      action = function()
-        print('Ctrl-H,Ctrl-W')
-      end
-    },
-    {
-      map = '<C-H><C-W>i',
-      action = function()
-        print('Ctrl-H,Ctrl-W,i')
-      end
-    },
+      desc = 'same as f in normal mode',
+    }
   },
-  default = function(prefix, c, number_list)
-    print('default:' .. prefix .. c)
-    --vim.fn.execute('normal a'..prefix..c)
-    --vim.fn.execute('normal '..c)
-    --vim.api.nvim_input('<C-W>>')
-    local key = vim.api.nvim_replace_termcodes(':vertical resize +1<CR>', true, false, true)
-    vim.api.nvim_feedkeys(key, 'x', false)
-    --vim.cmd('vertical resize +1')
-    --[[vim.schedule(function ()
-      vim.fn.execute('normal j')
-    end)]]
-  end,
-  afterEnter = function()
-    print('Enter test submode.')
-  end,
-  beforeLeave = function()
-    print('Will Leave Submode!')
-  end,
+  { ',', ',', { desc = 'same as , in normal mode', } },
+  { ';', ';', { desc = 'same as ; in normal mode', } },
+  { 'f', ';', { desc = 'same as , in normal mode', } },
+  { 'F', ',', { desc = 'same as ; in normal mode', } },
+  { '<any>',
+    function()
+      return nil, sm.EXIT_SUBMODE
+    end
+  }
 }
+
+local sm_smart_f = sm.build_submode({
+  name = "SMART-F",
+  timeoutlen = 300,
+  color = colors.purple,
+  after_enter = function()
+    vim.schedule(function()
+      require("lualine").refresh()
+    end)
+  end,
+  after_leave = function()
+    vim.schedule(function()
+      require("lualine").refresh()
+    end)
+    vim.notify("EXIT SMART-F")
+  end
+}, smart_f_keymap)
+vim.keymap.set('n', 'f', function()
+  sm.enable(sm_smart_f, 'f')
+end)
+
+vim.keymap.set('n', 'F', function()
+  sm.enable(sm_smart_f, 'F')
+end)
+local capslock_sm = sm.build_submode({
+  name = "CAPSLOCK",
+  color = colors.yellow,
+  is_count_enable = false,
+  after_enter = function()
+    -- vim.schedule(function()
+    require("lualine").refresh()
+    -- end)
+  end,
+  after_leave = function()
+    -- vim.schedule(function()
+    require("lualine").refresh()
+    -- end)
+    vim.notify("EXIT CAPSLOCK")
+  end
+}, {
+  {
+    '<any>',
+    function(count, keys, anys)
+      return string.upper(sm.replace_any(keys, anys))
+    end
+  },
+  {
+    '<C-L>',
+    function(_, _, _)
+      return "", sm.EXIT_SUBMODE
+    end
+
+  }
+})
+
+vim.keymap.set("i", "<C-L>", function()
+  sm.enable(capslock_sm)
+end)
+
+vim.keymap.set("n", "<C-L>", function()
+  sm.enable(capslock_sm)
+end)
+vim.keymap.set("c", "<C-L>", function()
+  sm.enable(capslock_sm)
+end)
+local fizzbuzz_keymap = {
+  {
+    'f',
+    function(count, _, _)
+      count = count > 0 and count or 1
+      local fb = ""
+      for i = 1, count, 1 do
+        if i % 15 == 0 then
+          fb = fb .. 'FizzBuzz' .. '\n'
+        elseif i % 3 == 0 then
+          fb = fb .. 'Fizz' .. '\n'
+        elseif i % 5 == 0 then
+          fb = fb .. 'Buzz' .. '\n'
+        else
+          fb = fb .. tostring(i) .. '\n'
+        end
+      end
+
+      return fb
+    end
+  }
+}
+
+vim.keymap.set('i', '<C-f>', function()
+  sm.enable(sm.build_submode({
+    name = "FIZZBUZZ",
+    color = "#7dcfff",
+    after_enter = function()
+      vim.schedule(function()
+        require("lualine").refresh()
+      end)
+    end,
+    after_leave = function()
+      vim.schedule(function()
+        require("lualine").refresh()
+      end)
+      vim.notify("EXIT FIZZBUZZ")
+    end
+  }, fizzbuzz_keymap))
+end)
+
+local perfect_insider_sm = sm.build_submode({ name = "PERFECT INSIDER" },
+  {
+    { '<any>', 'F' },
+  }
+)
+
+vim.keymap.set("i", "<C-S-f>", function()
+  sm.enable(perfect_insider_sm)
+end)
 
 package.loaded['toggle-cheatsheet'] = nil
 local tcs = require('toggle-cheatsheet').setup(true)
@@ -731,166 +1094,153 @@ wW      : move wins++/--
 sv      : :sp/:vsp
 n{n,h,t}: new vwin/win/tabs
 b       : :Telescope buffers
+f       : toggle fern
 ?       : toggle cheatsheet
 ]]
   tcs.toggle(cs)
 end
-local window_submode = {
-  lualine = true,
-  mode_name = 'Window',
-  mode_color = colors.red,
-  number_input = true,
-  submode_count1 = true,
-  mode_display_name = 'WINDOW',
-  afterEnter = toggle_submode_cs,
-  beforeLeave = function()
-    tcs.closeCheatSheetWin()
-  end,
-  keymaps = {
-    {
-      map = '>',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes('<C-W>>', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-      end
-    },
-    {
-      map = '<lt>',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes('<C-W><', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-      end
-    },
-    {
-      map = '+',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes(':resize +1<CR>', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-      end
-    },
-    {
-      map = '-',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes(':resize -1<CR>', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-      end
-    },
-    {
-      map = 'h',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes('<C-W>h', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-      end
-    },
-    {
-      map = 'j',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes('<C-W>j', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-      end
-    },
-    {
-      map = 'k',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes('<C-W>k', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-      end
-    },
-    {
-      map = 'l',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes('<C-W>l', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-      end
-    },
-    {
-      map = 't',
-      action = function()
-        --local key = vim.api.nvim_replace_termcodes(':tabn<CR>',true,false,true)
-        -- vim.api.nvim_feedkeys(key,'x',false)
+
+local window_sm_map = {
+  {
+    '>',
+    '<C-W>>',
+    {}
+  },
+  {
+    '<lt>',
+    '<C-W><',
+    {}
+  },
+  {
+    '+',
+    '<C-W>+',
+    {}
+  },
+  {
+    '-',
+    '<C-W>-',
+    {}
+  },
+  {
+    'h',
+    '<C-W>h',
+    {}
+  },
+  {
+    'j',
+    '<C-W>j',
+    {}
+  },
+  {
+    'k',
+    '<C-W>k',
+    {}
+  },
+  {
+    'l',
+    '<C-W>l',
+    {}
+  },
+  {
+    'w',
+    '<C-W>w',
+    {}
+  },
+  {
+    'W',
+    '<C-W>W',
+    {}
+  },
+  {
+    't',
+    sm.countable(
+      function()
         vim.cmd [[tabn]]
       end
-    },
-    {
-      map = 'T',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes(':tabN<CR>', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-      end
-    },
-    {
-      map = 'w',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes('<C-W>w', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-      end
-    },
-    {
-      map = 'W',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes('<C-W>W', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-      end
-    },
-    {
-      map = 'b',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes(':Telescope buffers<CR>', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-        sm.exitSubmode()
-      end
-    },
-    {
-      map = 's',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes(':sp<CR>', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-      end
-    },
-    {
-      map = 'v',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes(':vsp<CR>', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-      end
-    },
-
-    {
-      map = 'nn',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes(':vnew<CR>', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-        sm.exitSubmode()
-      end
-    },
-    {
-      map = 'nh',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes(':new<CR>', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-        sm.exitSubmode()
-      end
-    },
-    {
-      map = 'nt',
-      action = function()
-        local key = vim.api.nvim_replace_termcodes(':tabnew<CR>', true, false, true)
-        vim.api.nvim_feedkeys(key, 'x', false)
-        sm.exitSubmode()
-      end
-    },
-    {
-      map = '?',
-      action = toggle_submode_cs
-    }
+    ),
+    {}
   },
-  default = function() end,
+  {
+    'T',
+    sm.countable(
+      function()
+        vim.cmd [[tabN]]
+      end),
+    {}
+  },
+  {
+    's',
+    function()
+      vim.cmd [[sp]]
+    end,
+    {}
+  },
+  {
+    'v',
+    function()
+      vim.cmd [[vsp]]
+    end,
+    {}
+  },
+  {
+    'nh',
+    function()
+      vim.cmd [[new]]
+    end,
+    {}
+  },
+  {
+    'nn',
+    function()
+      vim.cmd [[vnew]]
+    end,
+    {}
+  },
+  {
+    'nt',
+    function()
+      vim.cmd [[tabnew]]
+    end,
+    {}
+  },
+  {
+    'b',
+    function()
+      vim.cmd [[Telescope buffers]]
+      return nil, sm.EXIT_SUBMODE
+    end
+  },
+  {
+    'f',
+    function()
+      vim.cmd [[Fern . -reveal=% -drawer -toggle -stay]]
+      return nil, sm.EXIT_SUBMODE
+    end
+  },
+
+  {
+    '?',
+    function()
+      toggle_submode_cs()
+    end
+  }
 }
 
-local submode = require('nvim-submode')
 vim.keymap.set('n', '<leader>w', function()
-  submode.enterSubmode(window_submode)
-end, { desc = 'Window Mode' })
+  sm.enable(sm.build_submode({
+    name = "WINDOW",
+    color = colors.red,
+    after_enter = function()
+      require("lualine").refresh()
+      toggle_submode_cs()
+    end,
+    after_leave = function()
+      require("lualine").refresh()
+      tcs.closeCheatSheetWin()
+    end
+  }, window_sm_map))
+end)
+
 
 -- config for lazygit
 local Terminal = require('toggleterm.terminal').Terminal
@@ -937,11 +1287,19 @@ vim.api.nvim_create_autocmd({ 'DirChanged' }, {
 })
 
 vim.keymap.set('n', '<leader>gl', function()
+  -- reload fern
+  vim.g['should_reload_fern'] = true
   _lazygit_toggle()
 end, { noremap = true, silent = true, desc = 'Open LazyGit' })
 vim.api.nvim_set_keymap('n', '<leader>gf', '<cmd>Flog<CR>', { noremap = true, silent = true, desc = 'Flog Graph' })
 
-local splitterm = Terminal:new({ hidden = true, direction = 'vertical' })
+local splitterm = Terminal:new({
+  hidden = true,
+  direction = 'vertical',
+  on_open = function()
+    vim.opt_local.winfixbuf = true
+  end
+})
 
 function _splitterm_toggle()
   splitterm:toggle()
@@ -972,14 +1330,14 @@ require('telescope').setup {
     find_files = {
       mappings = {
         i = {
-          ["<CR>"] = "select_tab"
+          -- ["<CR>"] = "select_tab"
         }
       }
     },
     live_grep = {
       mappings = {
         i = {
-          ["<CR>"] = "select_tab"
+          -- ["<CR>"] = "select_tab"
         }
       }
     },
@@ -1047,6 +1405,90 @@ require("nvim-lcl-lisp-runner").setup({
   clisp_cmd = { "rlwrap", "clasp" },
   clisp_with_file_cmd = { "rlwrap", "clasp", "-l" }
 })
+
+-- Add tokyonight colorpallet
+local palette_text = [[
+---@class Palette
+local ret = {
+  bg = "#24283b",
+  bg_dark = "#1f2335",
+  bg_dark1 = "#1b1e2d",
+  bg_highlight = "#292e42",
+  blue = "#7aa2f7",
+  blue0 = "#3d59a1",
+  blue1 = "#2ac3de",
+  blue2 = "#0db9d7",
+  blue5 = "#89ddff",
+  blue6 = "#b4f9f8",
+  blue7 = "#394b70",
+  comment = "#565f89",
+  cyan = "#7dcfff",
+  dark3 = "#545c7e",
+  dark5 = "#737aa2",
+  fg = "#c0caf5",
+  fg_dark = "#a9b1d6",
+  fg_gutter = "#3b4261",
+  green = "#9ece6a",
+  green1 = "#73daca",
+  green2 = "#41a6b5",
+  magenta = "#bb9af7",
+  magenta2 = "#ff007c",
+  orange = "#ff9e64",
+  purple = "#9d7cd8",
+  red = "#f7768e",
+  red1 = "#db4b4b",
+  teal = "#1abc9c",
+  terminal_black = "#414868",
+  yellow = "#e0af68",
+  git = {
+    add = "#449dab",
+    change = "#6183bb",
+    delete = "#914c54",
+  },
+}
+return ret
+]]
+
+---フローティングウィンドウでパレットを表示する関数
+local function show_palette()
+  -- 1. テキストを一時バッファに書き込む
+  local bufnr = vim.api.nvim_create_buf(false, true)    -- リストに表示せず、編集できないバッファを作成
+  vim.api.nvim_buf_set_lines(bufnr, 0, -1, false, vim.split(palette_text, "\n"))
+  vim.api.nvim_buf_set_option(bufnr, "filetype", "lua") -- 構文ハイライトを適用
+
+  -- 2. フローティングウィンドウのオプションを設定
+  local width = 50                                  -- ウィンドウの幅
+  local height = vim.api.nvim_buf_line_count(bufnr) -- 行数に合わせて高さを設定
+  local row = math.floor((vim.o.lines - height) / 2)
+  local col = math.floor((vim.o.columns - width) / 2)
+
+  local opts = {
+    relative = "editor",
+    row = row,
+    col = col,
+    width = width,
+    height = height,
+    border = "rounded", -- 枠線
+    style = "minimal",
+  }
+
+  -- 3. フローティングウィンドウを作成
+  local winnr = vim.api.nvim_open_win(bufnr, true, opts)
+
+  -- 4. 終了するためのキーマップを設定
+  -- q または <Esc> でウィンドウを閉じる
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "q", ":close<CR>", { silent = true, nowait = true })
+  vim.api.nvim_buf_set_keymap(bufnr, "n", "<esc>", ":close<CR>", { silent = true, nowait = true })
+
+  -- 5. カーソルを一番上に戻す
+  vim.api.nvim_win_set_cursor(winnr, { 1, 0 })
+end
+
+-- 6. :Palette コマンドを定義
+vim.api.nvim_create_user_command("Palette", show_palette, {
+  desc = "カラースキームのパレットを表示します",
+})
+
 require("vimuno")
 require("chopgrep")
 require("lingua-nvim")
