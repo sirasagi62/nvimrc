@@ -225,10 +225,26 @@ require('jetpack.packer').add {
   },
   { 'dnlhc/glance.nvim',
     config = function()
-      require('glance').setup()
+      require('glance').setup({
+        folds = {
+          folded = false,
+        },
+      })
     end
   },
-
+  { 'rmagatti/goto-preview',
+    config = function()
+      require('goto-preview').setup()
+    end,
+    requires = { "rmagatti/logger.nvim" },
+  },
+  {
+    'wiliamks/nice-reference.nvim',
+    requires = {
+      'kyazdani42/nvim-web-devicons', --optional
+      'rmagatti/goto-preview'
+    }
+  },
 
   -- for golang
   { 'fatih/vim-go',            ft = 'go' },
@@ -301,7 +317,7 @@ require('jetpack.packer').add {
           vim.opt_local.signcolumn = 'no'
           vim.opt_local.foldcolumn = "0"
           -- 別のバッファに切り替えない
-          vim.opt_local.winfixbuf = true
+          -- vim.opt_local.winfixbuf = true
           local toggle_help = function()
             local tcs = require('toggle-cheatsheet').setup(true)
             local raw_help = vim.fn['fern#action#list']()
@@ -583,7 +599,7 @@ vim.keymap.set('n', '<Leader>le', function() vim.diagnostic.open_float() end,
   { desc = 'Show diagnostic in floating window' })
 vim.keymap.set('n', '<Leader>lf', function() vim.lsp.buf.format() end, { desc = 'Format' })
 vim.keymap.set('n', '<Leader>lo', "<cmd>Lspsaga outline<CR>", { desc = 'Outline' })
-vim.keymap.set('n', '<Leader>tr', "<cmd>Glance references<CR>", { desc = 'References' })
+vim.keymap.set('n', '<Leader>tr', require('telescope.builtin').lsp_references, { desc = 'References' })
 vim.keymap.set('n', '<Leader>ld', "<cmd>Glance definitions<CR>", { desc = 'Definitions' })
 vim.keymap.set('n', '<Leader>tD', function() vim.lsp.buf.declaration() end, { desc = 'Declarations' })
 vim.keymap.set('n', '<Leader>ti', "<cmd>Glance implementations<CR>", { desc = 'Implementations' })
@@ -814,10 +830,6 @@ capabilities.textDocument.foldingRange = {
   dynamicRegistration = false,
   lineFoldingOnly = true
 }
-
-vim.lsp.config('*', {
-  capabilities = require('cmp_nvim_lsp').default_capabilities(),
-})
 
 require('ufo').setup()
 
@@ -1319,6 +1331,7 @@ require('telescope').setup {
   defaults = {
     -- Default configuration for telescope goes here:
     -- config_key = value,
+    path_display = { "smart" },
     mappings = {
       i = {
         -- ["<CR>"] = "select_tab"
@@ -1341,6 +1354,10 @@ require('telescope').setup {
         }
       }
     },
+    lsp_references = {
+
+      path_display = { "truncate" },
+    }
   },
   extensions = {
   }
