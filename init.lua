@@ -498,6 +498,33 @@ require('jetpack.packer').add {
       require('render-markdown').setup({})
     end
   },
+  {
+    'gaoDean/autolist.nvim',
+    -- ft = {'markdown'},
+    config = function()
+      require("autolist").setup()
+
+      require 'key-menu'.set('n', '<Leader>m', { desc = 'Markdown' })
+      vim.keymap.set("n", "<leader>mo", "o<cmd>AutolistNewBullet<cr>")
+      vim.keymap.set("n", "<leader>mO", "O<cmd>AutolistNewBulletBefore<cr>")
+      vim.keymap.set("n", "<leader>m<CR>", "<cmd>AutolistToggleCheckbox<cr><CR>")
+      vim.keymap.set("n", "<leader>m<C-r>", "<cmd>AutolistRecalculate<cr>")
+
+      -- cycle list types with dot-repeat
+      vim.keymap.set("n", "<leader>mn", require("autolist").cycle_next_dr, { expr = true })
+      vim.keymap.set("n", "<leader>mp", require("autolist").cycle_prev_dr, { expr = true })
+
+      -- if you don't want dot-repeat
+      -- vim.keymap.set("n", "<leader>cn", "<cmd>AutolistCycleNext<cr>")
+      -- vim.keymap.set("n", "<leader>cp", "<cmd>AutolistCycleNext<cr>")
+
+      -- functions to recalculate list on edit
+      vim.keymap.set("n", ">>", ">><cmd>AutolistRecalculate<cr>")
+      vim.keymap.set("n", "<<", "<<<cmd>AutolistRecalculate<cr>")
+      vim.keymap.set("n", "dd", "dd<cmd>AutolistRecalculate<cr>")
+      vim.keymap.set("v", "d", "d<cmd>AutolistRecalculate<cr>")
+    end
+  },
   -- automatically resize focused window
   { 'anuvyklack/windows.nvim',
     requires = 'anuvyklack/middleclass'
@@ -633,13 +660,46 @@ cmp.setup({
     { name = 'buffer' },
     { name = 'path' },
   },
-  mapping = cmp.mapping.preset.insert({
-    ['<S-Tab>'] = cmp.mapping.select_prev_item(),
-    ['<Tab>'] = cmp.mapping.select_next_item(),
+  mapping = {
+    -- Enterキーの設定
+    ['<CR>'] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        if cmp.get_selected_entry() then
+          cmp.confirm({ select = false })
+        else
+          fallback() -- 補完窓は出ているが選択していない場合は通常のEnter（autolistに流れる）
+        end
+      else
+        -- 補完窓が出ていない時、autolistの改行命令を実行
+        vim.api.nvim_feedkeys(vim.api.nvim_replace_termcodes("<CR><cmd>AutolistNewBullet<cr>", true, true, true), "n",
+          true)
+      end
+    end, { "i", "s" }),
+
+    -- Tabキーの設定（autolistのインデントを優先）
+    ['<Tab>'] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_next_item()
+      elseif vim.bo.filetype == 'markdown' then
+        vim.cmd('AutolistTab')
+      else
+        fallback()
+      end
+    end, { "i", "s" }),
+
+    -- Shift-Tabキーの設定
+    ['<S-Tab>'] = cmp.mapping(function(fallback)
+      if cmp.visible() then
+        cmp.select_prev_item()
+      elseif vim.bo.filetype == 'markdown' then
+        vim.cmd('AutolistShiftTab')
+      else
+        fallback()
+      end
+    end, { "i", "s" }),
     ['<C-o>'] = cmp.mapping.complete(),
     ['<C-q>'] = cmp.mapping.abort(),
-    ['<CR>'] = cmp.mapping.confirm { select = true },
-  }),
+  },
 })
 cmp.setup.cmdline('/', {
   mapping = cmp.mapping.preset.cmdline(),
