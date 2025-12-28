@@ -840,7 +840,7 @@ require("mason-lspconfig").setup {
   ensure_installed = {
     "bashls",
     "clangd",
-    "cmake",
+    -- "cmake",
     "cssls",
     "dockerls",
     "docker_compose_language_service",
@@ -1566,6 +1566,21 @@ vim.api.nvim_create_user_command("Palette", show_palette, {
   desc = "カラースキームのパレットを表示します",
 })
 
-require("vimuno")
-require("chopgrep")
-require("lingua-nvim")
+if vim.fn.filereadable("~/.101keyboard") then
+  local all_modes = {
+    "n", -- Normal mode
+    "v", -- Visual mode
+    "x", -- Visual line mode (Note: 'v' often covers both visual modes, but 'x' is for line-wise)
+    "s", -- Select mode
+    "o", -- Operator-pending mode
+    "i", -- Insert mode
+    "c", -- Command-line mode
+    "t", -- Terminal mode
+    "l", -- Lua mode (Internal: used for defining Lua function mappings)
+  }
+  vim.keymap.set(all_modes,";",":")
+  vim.keymap.set(all_modes,":",";")
+end
+-- require("vimuno")
+-- require("chopgrep")
+-- require("lingua-nvim")
