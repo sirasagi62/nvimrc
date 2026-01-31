@@ -1569,7 +1569,7 @@ vim.api.nvim_create_user_command("Palette", show_palette, {
   desc = "カラースキームのパレットを表示します",
 })
 
-if vim.fn.filereadable("~/.101keyboard") then
+if vim.fn.filereadable(vim.fn.expand("~/.101keyboard"))==1 then
   local all_modes = {
     "n", -- Normal mode
     "v", -- Visual mode
