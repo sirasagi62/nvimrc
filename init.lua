@@ -317,7 +317,7 @@ require('jetpack.packer').add {
           vim.opt_local.signcolumn = 'no'
           vim.opt_local.foldcolumn = "0"
           -- 別のバッファに切り替えない
-          -- vim.opt_local.winfixbuf = true
+          vim.opt_local.winfixbuf = true
           local toggle_help = function()
             local tcs = require('toggle-cheatsheet').setup(true)
             local raw_help = vim.fn['fern#action#list']()
@@ -607,6 +607,9 @@ let g:expand_region_text_objects = {
       \ }
 ]])
 
+-- cf https://github.com/atusy/dotfiles/blob/c8723b34fb17e6210d1fe4780df3e267c52219c6/dot_config/nvim/lua/atusy/init.lua?plain=1#L129.
+-- vim.keymap.set({ "o", "x" }, "ae", ":C-Ukeepjumps normal! G$vgoCr", { silent = true })
+vim.keymap.set({ "n" }, "W", "b", { silent = true })
 -- settings for nvim-surround
 require('nvim-surround').setup({})
 
