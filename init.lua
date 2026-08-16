@@ -75,7 +75,8 @@ end
 
 -- loading plugins
 vim.cmd('packadd vim-jetpack')
-require('jetpack.packer').add {
+local packer = require('jetpack.packer')
+packer.add({
   { 'tani/vim-jetpack' },
 
   -- colorshceme
@@ -85,7 +86,8 @@ require('jetpack.packer').add {
   -- status line plugins
   { 'nvim-lualine/lualine.nvim' },
   { 'nvim-tree/nvim-web-devicons' },
-  { 'nvim-mini/mini.tabline',
+  {
+    'nvim-mini/mini.tabline',
     requires = {
       'nvim-mini/mini.icons'
     },
@@ -108,9 +110,12 @@ require('jetpack.packer').add {
   { 'lukas-reineke/indent-blankline.nvim' }, -- show indent
   { 'cohama/lexima.vim' },
   { 'tpope/vim-commentary' },                -- comment toggle
-  { 'nmac427/guess-indent.nvim', config = function()
-    require('guess-indent').setup {}
-  end }, -- insert indent wisely
+  {
+    'nmac427/guess-indent.nvim',
+    config = function()
+      require('guess-indent').setup {}
+    end
+  }, -- insert indent wisely
 
   -- text objects(textobj)
 
@@ -125,17 +130,20 @@ require('jetpack.packer').add {
   { 'tpope/vim-fugitive' },
   { 'rbong/vim-flog' },
   { 'rhysd/git-messenger.vim' },
-  { 'nvim-mini/mini.diff',
+  {
+    'nvim-mini/mini.diff',
     config = function()
       require('mini.diff').setup()
     end
   },
 
   -- make terminal better
-  { 'akinsho/toggleterm.nvim',
+  {
+    'akinsho/toggleterm.nvim',
     config = function()
       require('toggleterm').setup()
-    end },
+    end
+  },
 
   -- plugins for debug
   { 'mfussenegger/nvim-dap' },
@@ -209,7 +217,8 @@ require('jetpack.packer').add {
       vim.diagnostic.config({ virtual_text = false }) -- Disable default virtual text
     end
   },
-  { 'nvimdev/lspsaga.nvim',
+  {
+    'nvimdev/lspsaga.nvim',
     config = function()
       require('lspsaga').setup({
         ui = {
@@ -223,7 +232,8 @@ require('jetpack.packer').add {
       })
     end
   },
-  { 'dnlhc/glance.nvim',
+  {
+    'dnlhc/glance.nvim',
     config = function()
       require('glance').setup({
         folds = {
@@ -232,7 +242,8 @@ require('jetpack.packer').add {
       })
     end
   },
-  { 'rmagatti/goto-preview',
+  {
+    'rmagatti/goto-preview',
     config = function()
       require('goto-preview').setup()
     end,
@@ -273,7 +284,8 @@ require('jetpack.packer').add {
   { 'kyoh86/telescope-windows.nvim' },
 
   -- filer
-  { 'lambdalisue/fern.vim',
+  {
+    'lambdalisue/fern.vim',
     requires = {
       { 'lambdalisue/vim-glyph-palette' },
       { 'TheLeoP/fern-renderer-web-devicons.nvim' },
@@ -461,7 +473,8 @@ require('jetpack.packer').add {
     end
   },
 
-  { 'stevearc/oil.nvim',
+  {
+    'stevearc/oil.nvim',
     config = function()
       require("oil").setup({
         float = {
@@ -482,14 +495,16 @@ require('jetpack.packer').add {
   { 'emmanueltouzery/key-menu.nvim' },
 
   -- make notify fancy
-  { 'rcarriga/nvim-notify',
+  {
+    'rcarriga/nvim-notify',
     config = function()
       vim.notify = require('notify')
     end
   },
 
   -- make markdown fancy
-  { 'MeanderingProgrammer/render-markdown.nvim',
+  {
+    'MeanderingProgrammer/render-markdown.nvim',
     requires = {
       'https://github.com/nvim-treesitter/nvim-treesitter',
       'https://github.com/nvim-tree/nvim-web-devicons'
@@ -526,7 +541,8 @@ require('jetpack.packer').add {
     end
   },
   -- automatically resize focused window
-  { 'anuvyklack/windows.nvim',
+  {
+    'anuvyklack/windows.nvim',
     requires = 'anuvyklack/middleclass'
   },
 
@@ -558,7 +574,8 @@ require('jetpack.packer').add {
   { 'sirasagi62/nvim-lcl-lisp-runner' },
   { 'sirasagi62/toggle-cheatsheet.nvim' },
   { 'sirasagi62/tinysegmenter.nvim' },
-  { 'sirasagi62/chopgrep.nvim',
+  {
+    'sirasagi62/chopgrep.nvim',
     requires = {
       'MunifTanjim/nui.nvim',
       'grapp-dev/nui-components.nvim'
@@ -566,13 +583,21 @@ require('jetpack.packer').add {
   },
   { '~/project/vimuno' },
   { '~/project/lingua-nvim' },
+  { '~/project/nvim-nanold' },
+  {
+    '~/project/nvim-fluent-helper',
+    config = function()
+      require("nvim-fluent-helper").setup({})
+    end
+  },
   { 'sirasagi62/flf-vim' },
-  { 'grapp-dev/nui-components.nvim',
+  {
+    'grapp-dev/nui-components.nvim',
     requires = 'MunifTanjim/nui.nvim'
   },
 
 
-}
+})
 -- setting for colorscheme
 vim.opt.cursorline = true -- show cursorline
 vim.cmd [[colorscheme tokyonight]]
@@ -634,7 +659,8 @@ vim.keymap.set('n', '<Leader>ld', "<cmd>Glance definitions<CR>", { desc = 'Defin
 vim.keymap.set('n', '<Leader>tD', function() vim.lsp.buf.declaration() end, { desc = 'Declarations' })
 vim.keymap.set('n', '<Leader>ti', "<cmd>Glance implementations<CR>", { desc = 'Implementations' })
 vim.keymap.set('n', '<Leader>tt', "<cmd>Glance type_definitions<CR>", { desc = 'Type defs...' })
-vim.keymap.set('n', '<F2>', "<cmd>Lspsaga rename<CR>")
+-- vim.keymap.set('n', '<F2>', "<cmd>Lspsaga rename<CR>")
+vim.keymap.set('n', '<F2>', vim.lsp.buf.rename)
 vim.keymap.set('n', '<Leader>la', "<cmd>Lspsaga code_action<CR>", { desc = 'Actions..' })
 vim.keymap.set('n', '<Leader>te', "<cmd>Lspsaga diagnostic_jump_next<CR>", { desc = 'Next diag..' })
 vim.keymap.set('n', '<Leader>tE', "<cmd>Lspsaga diagnostic_jump_prev<CR>", { desc = 'Prev diag..' })
@@ -993,6 +1019,15 @@ local lualine_b_submode = {
   'diff', 'diagnostics'
 }
 
+
+local nanold = require("nanold")
+nanold.setup({
+  max_bytes = 20 * 1024,
+  patterns = { "*.md", "*.txt", "*.json", "*.jsonl", "*.html" },
+})
+
+-- require("nanold.demo").setup()
+
 -- config for lualine
 local lualine = require('lualine')
 lualine.setup {
@@ -1005,8 +1040,12 @@ lualine.setup {
     lualine_a = colored_submode_component,
     lualine_b = branch_with_submode,
     lualine_c = { 'diff', 'diagnostics', 'filename' },
-    lualine_y = {}, --progress_with_submode,
-    lualine_z = {}  --location_with_submode,
+    lualine_y = {
+      function()
+        return nanold.statusline(0)
+      end
+    },             --progress_with_submode,
+    lualine_z = {} --location_with_submode,
   }
 }
 
@@ -1057,13 +1096,6 @@ local sm_smart_f = sm.build_submode({
     vim.notify("EXIT SMART-F")
   end
 }, smart_f_keymap)
-vim.keymap.set('n', 'f', function()
-  sm.enable(sm_smart_f, 'f')
-end)
-
-vim.keymap.set('n', 'F', function()
-  sm.enable(sm_smart_f, 'F')
-end)
 local capslock_sm = sm.build_submode({
   name = "CAPSLOCK",
   color = colors.yellow,
@@ -1569,7 +1601,7 @@ vim.api.nvim_create_user_command("Palette", show_palette, {
   desc = "カラースキームのパレットを表示します",
 })
 
-if vim.fn.filereadable(vim.fn.expand("~/.101keyboard"))==1 then
+if vim.fn.filereadable(vim.fn.expand("~/.101keyboard")) == 1 then
   local all_modes = {
     "n", -- Normal mode
     "v", -- Visual mode
@@ -1581,8 +1613,8 @@ if vim.fn.filereadable(vim.fn.expand("~/.101keyboard"))==1 then
     "t", -- Terminal mode
     "l", -- Lua mode (Internal: used for defining Lua function mappings)
   }
-  vim.keymap.set(all_modes,";",":")
-  vim.keymap.set(all_modes,":",";")
+  vim.keymap.set(all_modes, ";", ":")
+  vim.keymap.set(all_modes, ":", ";")
 end
 -- require("vimuno")
 -- require("chopgrep")
